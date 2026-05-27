@@ -1,0 +1,110 @@
+# Configuración de Cron para Sistema de Combustible
+# Archivo: crontab_combustible.txt
+# 
+# Para instalar: crontab crontab_combustible.txt
+# Para ver: crontab -l
+# Para editar: crontab -e
+
+# ===========================================
+# SISTEMA DE REPORTES AUTOMÁTICOS
+# ===========================================
+
+# Enviar reporte mensual el día 1 de cada mes a las 9:00 AM (México)
+# El comando verifica internamente si es día de reporte
+0 9 * * * /Users/xoyoc/Developer/LogincoCobustible/scripts/send_monthly_report.sh >> /var/log/combustible_reports.log 2>&1
+
+# Alternativa usando Django management command directamente
+# 0 9 * * * cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check_and_send_reports >> /var/log/combustible_daily.log 2>&1
+
+# ===========================================
+# VERIFICACIONES DIARIAS
+# ===========================================
+
+# Verificar mantenimientos diariamente a las 8:00 AM
+0 8 * * * cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py verificar_mantenimientos >> /var/log/combustible_maintenance.log 2>&1
+
+# Backup de base de datos diariamente a las 3:00 AM
+0 3 * * * cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py dumpdata --natural-foreign --natural-primary --exclude=contenttypes --exclude=auth.permission --exclude=admin.logentry --exclude=sessions.session --output=backups/backup_$(date +\%Y\%m\%d).json >> /var/log/combustible_backup.log 2>&1
+
+# ===========================================
+# LIMPIEZA SEMANAL
+# ===========================================
+
+# Limpiar archivos temporales los domingos a las 2:00 AM
+0 2 * * 0 cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check_and_send_reports >> /var/log/combustible_cleanup.log 2>&1
+
+# ===========================================
+# VERIFICACIONES ESPECÍFICAS
+# ===========================================
+
+# Verificar operadores inactivos los lunes a las 10:00 AM
+0 10 * * 1 cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check_and_send_reports >> /var/log/combustible_inactive.log 2>&1
+
+# ===========================================
+# MONITOREO Y MANTENIMIENTO
+# ===========================================
+
+# Verificar estado del sistema cada 6 horas
+0 */6 * * * cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check --deploy >> /var/log/combustible_system.log 2>&1
+
+# Rotar logs semanalmente (solo si usas logrotate)
+# 0 1 * * 0 /usr/sbin/logrotate /etc/logrotate.d/combustible
+
+# ===========================================
+# COMANDOS DE TESTING (COMENTADOS)
+# ===========================================
+
+# Para testing - ejecutar cada minuto (DESCOMENTAR SOLO PARA TESTING)
+# * * * * * cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check_and_send_reports --test >> /var/log/combustible_test.log 2>&1
+
+# Para testing - ejecutar reporte forzado cada hora (DESCOMENTAR SOLO PARA TESTING)
+# 0 * * * * cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check_and_send_reports --force --test >> /var/log/combustible_test.log 2>&1
+
+# ===========================================
+# NOTAS IMPORTANTES
+# ===========================================
+
+# 1. Asegúrate de que las rutas sean correctas para tu sistema
+# 2. Los logs se guardan en /var/log/ - asegúrate de tener permisos
+# 3. Para desarrollo, puedes cambiar las rutas a tu directorio local
+# 4. Los comandos de testing están comentados - descomenta solo para pruebas
+# 5. Ajusta los horarios según tu zona horaria (México: UTC-6)
+
+# ===========================================
+# CONFIGURACIÓN DE LOGS
+# ===========================================
+
+# Crear directorio de logs si no existe:
+# sudo mkdir -p /var/log/combustible
+# sudo chown $USER:$USER /var/log/combustible
+
+# Configurar logrotate para evitar que los logs crezcan demasiado:
+# sudo nano /etc/logrotate.d/combustible
+#
+# /var/log/combustible*.log {
+#     daily
+#     missingok
+#     rotate 30
+#     compress
+#     delaycompress
+#     notifempty
+#     create 644 $USER $USER
+# }
+
+# ===========================================
+# COMANDOS ÚTILES
+# ===========================================
+
+# Ver logs en tiempo real:
+# tail -f /var/log/combustible_reports.log
+# tail -f /var/log/combustible_maintenance.log
+
+# Verificar que cron esté funcionando:
+# sudo systemctl status cron
+# sudo systemctl enable cron
+
+# Ver trabajos de cron del usuario:
+# crontab -l
+
+# Probar comando manualmente:
+# cd /Users/xoyoc/Developer/LogincoCobustible && source venv/bin/activate && python manage.py check_and_send_reports --test

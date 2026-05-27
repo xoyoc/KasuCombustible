@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block title %}Registros de Tickets{% endblock %}
+
+{% block header_title %}
+    <i class="fas fa-list mr-2"></i>
+    Registros de Tickets
+{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'registro_create' %}" class="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition-colors">
+        <i class="fas fa-plus"></i>
+    </a>
+{% endblock %}
+
+{% block content %}
+<!-- Estadísticas -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="gradient-bg text-white p-6 rounded-2xl shadow-lg">
+        <div class="text-3xl font-bold">{{ total_registros }}</div>
+        <div class="text-white/80 text-sm">Total Tickets</div>
+    </div>
+    <div class="gradient-success text-white p-6 rounded-2xl shadow-lg">
+        <div class="text-3xl font-bold">${{ total_gastado|floatformat:2 }}</div>
+        <div class="text-white/80 text-sm">Total Gastado</div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+    <form method="get" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <select name="equipo" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <option value="">Todos los equipos</option>
+                {% for equipo in equipos %}
+                    <option value="{{ equipo.id }}" {% if request.GET.equipo == equipo.id|stringformat:"s" %}selected{% endif %}>
+                        {{ equipo.placa }} - {{ equipo.marca }}
+                    </option>
+                {% endfor %}
+            </select>
+            <select name="operador" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                <option value="">Todos los operadores</option>
+                {% for operador in operadores %}
+                    <option value="{{ operador.id }}" {% if request.GET.operador == operador.id|stringformat:"s" %}selected{% endif %}>
+                        {{ operador.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="w-full gradient-primary text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transition-all">
+            <i class="fas fa-filter mr-2"></i>Filtrar
+        </button>
+    </form>
+</div>
+
+<!-- Lista de registros -->
+{% if registros %}
+    <div class="space-y-4">
+        {% for registro in registros %}
+            <div class="bg-white rounded-2xl shadow-lg p-6 card-hover">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                            <i class="fas fa-ticket-alt text-blue-500 mr-2"></i>
+                            Ticket #{{ registro.numero_tiket }}
+                        </h3>
+                        <p class="text-sm text-gray-500 mb-3">
+                            <i class="fas fa-clock mr-1"></i>
+                            {{ registro.fecha_hora|date:"d/m/Y H:i" }}
+                        </p>
+                        
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center">
+                                <i class="fas fa-truck text-green-500 mr-2 w-4"></i>
+                                <span class="font-medium">{{ registro.idEquipo.placa }}</span> - 
+                                <span class="text-gray-600">{{ registro.idEquipo.marca }} {{ registro.idEquipo.modelo }}</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-user text-blue-500 mr-2 w-4"></i>
+                                <span class="text-gray-700">{{ registro.idOperador.nombre }}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-tint text-blue-500 mr-2 w-4"></i>
+                                    <span class="font-medium">{{ registro.Litros }}L</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-tachometer-alt text-yellow-500 mr-2 w-4"></i>
+                                    <span>{{ registro.kilometraje }} km</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div class="text-2xl font-bold text-blue-600 mb-1">
+                            {% comment %} ${{ registro.Litros|multiply:registro.costolitro|floatformat:2 }} {% endcomment %}
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            ${{ registro.costolitro }}/L
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+                    <div>
+                        {% if registro.photo_tiket %}
+                            <button type="button" onclick="showModal('photoModal{{ registro.id }}')" 
+                                    class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
+                                <i class="fas fa-image mr-1"></i>Ver Foto
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex space-x-2">
+                        <a href="{% url 'registro_detail' registro.id %}" 
+                           class="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'registro_update' registro.id %}" 
+                           class="bg-yellow-50 text-yellow-600 p-2 rounded-lg hover:bg-yellow-100 transition-colors">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button type="button" onclick="confirmarEliminacion({{ registro.id }})" 
+                                class="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition-colors">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para ver foto -->
+            {% if registro.photo_tiket %}
+                <div id="photoModal{{ registro.id }}" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+                    <div class="flex items-center justify-center min-h-screen p-4">
+                        <div class="bg-white rounded-2xl max-w-lg w-full">
+                            <div class="flex justify-between items-center p-6 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold">Ticket #{{ registro.numero_tiket }}</h3>
+                                <button onclick="hideModal('photoModal{{ registro.id }}')" 
+                                        class="text-gray-400 hover:text-gray-600 transition-colors">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+                            <div class="p-6">
+                                <img src="{{ registro.photo_tiket.url }}" class="w-full rounded-xl" alt="Foto del ticket">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+        <div class="flex justify-center mt-8">
+            <nav class="flex space-x-2">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                {% endif %}
+
+                <span class="px-4 py-2 rounded-lg bg-blue-500 text-white font-medium">
+                    {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-2 rounded-lg bg-white border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    {% endif %}
+{% else %}
+    <div class="text-center py-16">
+        <div class="mb-6">
+            <i class="fas fa-gas-pump text-gray-300 text-6xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay registros</h3>
+        <p class="text-gray-500 mb-6">Aún no se han registrado tickets de combustible.</p>
+        <a href="{% url 'registro_create' %}" class="gradient-primary text-white px-8 py-3 rounded-xl font-semibold inline-flex items-center hover:shadow-lg transition-all">
+            <i class="fas fa-plus mr-2"></i>Crear Primer Ticket
+        </a>
+    </div>
+{% endif %}
+
+<!-- Formulario oculto para eliminación -->
+<form id="deleteForm" method="post" class="hidden">
+    {% csrf_token %}
+    <input type="hidden" name="_method" value="DELETE">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarEliminacion(registroId) {
+    // Crear modal de confirmación personalizado
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Confirmar eliminación</h3>
+                <p class="text-gray-500 mb-6">¿Está seguro de que desea eliminar este registro? Esta acción no se puede deshacer.</p>
+                <div class="flex space-x-3">
+                    <button onclick="cancelarEliminacion()" class="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                        Cancelar
+                    </button>
+                    <button onclick="ejecutarEliminacion(${registroId})" class="flex-1 bg-red-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-600 transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    window.currentModal = modal;
+}
+
+function cancelarEliminacion() {
+    if (window.currentModal) {
+        document.body.removeChild(window.currentModal);
+        window.currentModal = null;
+    }
+}
+
+function ejecutarEliminacion(registroId) {
+    const form = document.getElementById('deleteForm');
+    form.action = `/registro/${registroId}/delete/`;
+    form.submit();
+}
+
+function showModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Función para filtrar registros localmente
+function filtrarRegistros() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const cards = document.querySelectorAll('.bg-white.rounded-2xl.shadow-lg');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Cerrar modales al hacer clic fuera
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('bg-black/50')) {
+        const modals = document.querySelectorAll('[id^="photoModal"]');
+        modals.forEach(modal => {
+            modal.classList.add('hidden');
+        });
+        document.body.style.overflow = 'auto';
+    }
+});
+
+// Animaciones de entrada para las tarjetas
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.card-hover');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.3s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

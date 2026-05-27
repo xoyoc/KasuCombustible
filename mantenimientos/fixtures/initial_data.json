@@ -1,0 +1,141 @@
+[
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 1,
+    "fields": {
+      "nombre": "Mantenimiento Preventivo General",
+      "descripcion": "Mantenimiento preventivo completo que incluye cambio de aceite, filtros, revisión de frenos, sistema eléctrico y general del vehículo."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 2,
+    "fields": {
+      "nombre": "Cambio de Aceite y Filtros",
+      "descripcion": "Cambio de aceite de motor, filtro de aceite, filtro de aire y filtro de combustible."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 3,
+    "fields": {
+      "nombre": "Revisión de Frenos",
+      "descripcion": "Inspección y mantenimiento del sistema de frenos, incluyendo pastillas, discos, líquido de frenos y ajustes."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 4,
+    "fields": {
+      "nombre": "Mantenimiento de Transmisión",
+      "descripcion": "Revisión y mantenimiento del sistema de transmisión, cambio de aceite de transmisión y ajustes necesarios."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 5,
+    "fields": {
+      "nombre": "Revisión de Suspensión",
+      "descripcion": "Inspección y mantenimiento del sistema de suspensión, amortiguadores, resortes y componentes relacionados."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 6,
+    "fields": {
+      "nombre": "Sistema Eléctrico",
+      "descripcion": "Revisión del sistema eléctrico, batería, alternador, luces y componentes eléctricos del vehículo."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 7,
+    "fields": {
+      "nombre": "Mantenimiento de Llantas",
+      "descripcion": "Rotación de llantas, balanceo, alineación y revisión del estado general de los neumáticos."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 8,
+    "fields": {
+      "nombre": "Sistema de Refrigeración",
+      "descripción": "Mantenimiento del sistema de refrigeración, cambio de refrigerante, revisión de radiador y termostato."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 9,
+    "fields": {
+      "nombre": "Mantenimiento Correctivo",
+      "descripcion": "Reparación de fallas específicas y corrección de problemas detectados en el vehículo."
+    }
+  },
+  {
+    "model": "mantenimiento.tipomantenimiento",
+    "pk": 10,
+    "fields": {
+      "nombre": "Inspección Pre-Operacional",
+      "descripcion": "Inspección diaria antes del uso del vehículo, verificando niveles, luces, frenos y estado general."
+    }
+  },
+  {
+    "model": "mantenimiento.supervisor",
+    "pk": 1,
+    "fields": {
+      "nombre": "Supervisor General",
+      "email": "supervisor@empresa.com",
+      "telefono": "1234567890",
+      "activo": true
+    }
+  },
+  {
+    "model": "mantenimiento.operador",
+    "pk": 1,
+    "fields": {
+      "nombre": "Operador de Ejemplo",
+      "email": "operador@empresa.com",
+      "movil": "0987654321",
+      "activo": true
+    }
+  },
+  {
+    "model": "mantenimiento.equipo",
+    "pk": 1,
+    "fields": {
+      "placa": "ABC-123",
+      "modelo": "Ejemplo",
+      "marca": "Toyota",
+      "year": 2020,
+      "capacidad_tanque": 50,
+      "kilometraje_actual": 25000,
+      "activo": true
+    }
+  },
+  {
+    "model": "mantenimiento.equipo",
+    "pk": 2,
+    "fields": {
+      "placa": "XYZ-789",
+      "modelo": "Hilux",
+      "marca": "Toyota",
+      "year": 2021,
+      "capacidad_tanque": 60,
+      "kilometraje_actual": 15000,
+      "activo": true
+    }
+  },
+  {
+    "model": "mantenimiento.equipo",
+    "pk": 3,
+    "fields": {
+      "placa": "DEF-456",
+      "modelo": "Ranger",
+      "marca": "Ford",
+      "year": 2019,
+      "capacidad_tanque": 65,
+      "kilometraje_actual": 45000,
+      "activo": true
+    }
+  }
+]

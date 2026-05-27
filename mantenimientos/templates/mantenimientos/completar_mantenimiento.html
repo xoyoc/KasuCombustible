@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+
+{% block title %}Completar Mantenimiento - {{ mantenimiento.equipo.placa }}{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Header Mobile -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-check-circle mr-2 text-green-600"></i>
+                    Completar
+                </h1>
+                <p class="text-sm text-gray-600">{{ mantenimiento.equipo.placa }}</p>
+            </div>
+            <div class="flex space-x-2">
+                <a href="{% url 'mantenimiento:update' mantenimiento.pk %}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'mantenimiento:list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info del Mantenimiento -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Información del Mantenimiento</h2>
+        
+        <div class="space-y-3">
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-truck text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">{{ mantenimiento.equipo.placa }}</p>
+                    <p class="text-sm text-gray-500">{{ mantenimiento.equipo.marca }} {{ mantenimiento.equipo.modelo }} ({{ mantenimiento.equipo.year }})</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-user text-green-600"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">{{ mantenimiento.operador.nombre }}</p>
+                    <p class="text-sm text-gray-500">{{ mantenimiento.operador.email }}</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center">
+                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-cogs text-purple-600"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">{{ mantenimiento.tipo_mantenimiento.nombre }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de Fechas y Kilometraje -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">Detalles</h3>
+        
+        <div class="grid grid-cols-1 gap-3">
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Fecha Programada</p>
+                        <p class="font-semibold text-gray-900">{{ mantenimiento.fecha_programada|date:"d/m/Y" }}</p>
+                    </div>
+                    {% if mantenimiento.fecha_programada < "now"|date:"Y-m-d"|date:"Y-m-d" %}
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Vencido {{ mantenimiento.dias_vencido }} días
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Kilometraje Programado</p>
+                        <p class="font-semibold text-gray-900">{{ mantenimiento.kilometraje_programado|floatformat:0 }} km</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-50 rounded-lg p-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Kilometraje Actual</p>
+                        <p class="font-semibold text-gray-900">{{ mantenimiento.equipo.kilometraje_actual|floatformat:0 }} km</p>
+                    </div>
+                    {% with km_diff=mantenimiento.equipo.kilometraje_actual|add:"-"|add:mantenimiento.kilometraje_programado %}
+                        {% if km_diff > 0 %}
+                            <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                {{ km_diff|floatformat:0 }} km sobre límite
+                            </span>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+        
+        {% if mantenimiento.observaciones %}
+            <div class="mt-3 bg-gray-50 rounded-lg p-3">
+                <p class="text-sm font-medium text-gray-600 mb-1">
+                    <i class="fas fa-sticky-note mr-1"></i>
+                    Observaciones Iniciales
+                </p>
+                <p class="text-sm text-gray-900">{{ mantenimiento.observaciones }}</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Formulario de Completar -->
+    <div class="bg-white rounded-lg shadow">
+        <form method="post" id="completarForm">
+            {% csrf_token %}
+            
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-clipboard-check mr-2"></i>
+                    Completar Mantenimiento
+                </h2>
+            </div>
+            
+            <div class="p-4 space-y-4">
+                <!-- Kilometraje Actual -->
+                <div>
+                    <label for="kilometraje_actual" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-tachometer-alt mr-1"></i>
+                        Kilometraje Actual *
+                    </label>
+                    <input type="number" 
+                           name="kilometraje_actual" 
+                           id="kilometraje_actual" 
+                           value="{{ mantenimiento.equipo.kilometraje_actual }}"
+                           min="{{ mantenimiento.equipo.kilometraje_actual }}"
+                           class="w-full px-3 py-3 border border-gray-300 rounded-lg text-base"
+                           required>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Actualiza el kilometraje del equipo
+                    </p>
+                </div>
+
+                <!-- Observaciones -->
+                <div>
+                    <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-clipboard-list mr-1"></i>
+                        Observaciones del Mantenimiento
+                    </label>
+                    <textarea name="observaciones" 
+                              id="observaciones" 
+                              rows="4"
+                              class="w-full px-3 py-3 border border-gray-300 rounded-lg text-base"
+                              placeholder="Trabajos realizados, piezas cambiadas, estado del equipo...">{{ mantenimiento.observaciones }}</textarea>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Detalla los trabajos realizados
+                    </p>
+                </div>
+
+                <!-- Costo -->
+                <div>
+                    <label for="costo" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-dollar-sign mr-1"></i>
+                        Costo Total
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-3 text-gray-500">$</span>
+                        <input type="number" 
+                               name="costo" 
+                               id="costo" 
+                               step="0.01"
+                               min="0"
+                               value="{% if mantenimiento.costo %}{{ mantenimiento.costo }}{% endif %}"
+                               class="w-full pl-8 pr-3 py-3 border border-gray-300 rounded-lg text-base"
+                               placeholder="0.00">
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Incluye mano de obra y repuestos
+                    </p>
+                </div>
+
+                <!-- Checklist Mobile -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="text-sm font-semibold text-blue-800 mb-3">
+                        <i class="fas fa-list-check mr-1"></i>
+                        Checklist de Verificación
+                    </h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="check-aceite" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3">
+                            <span class="text-sm text-blue-700">Cambio de aceite realizado</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="check-filtros" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3">
+                            <span class="text-sm text-blue-700">Filtros revisados/cambiados</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="check-frenos" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3">
+                            <span class="text-sm text-blue-700">Sistema de frenos verificado</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="check-llantas" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3">
+                            <span class="text-sm text-blue-700">Estado de llantas revisado</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="check-general" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-3">
+                            <span class="text-sm text-blue-700">Inspección general completada</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions Mobile -->
+            <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 px-4 rounded-lg font-medium text-base">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    Completar Mantenimiento
+                </button>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <a href="{% url 'mantenimiento:update' mantenimiento.pk %}" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-lg text-sm text-center">
+                        <i class="fas fa-edit mr-1"></i>
+                        Editar
+                    </a>
+                    <a href="{% url 'mantenimiento:list' %}" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-3 rounded-lg text-sm text-center">
+                        <i class="fas fa-times mr-1"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info Mobile -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <i class="fas fa-lightbulb text-yellow-600 mt-1 mr-3"></i>
+            <div>
+                <h3 class="text-sm font-semibold text-yellow-800 mb-2">¿Qué sucede al completar?</h3>
+                <ul class="text-sm text-yellow-700 space-y-1">
+                    <li>• Se actualiza el kilometraje del equipo</li>
+                    <li>• Se marca como completado</li>
+                    <li>• Se programa el próximo mantenimiento</li>
+                    <li>• Se envía confirmación</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('completarForm');
+    const kilometrajeInput = document.getElementById('kilometraje_actual');
+    const observacionesTextarea = document.getElementById('observaciones');
+    const checkboxes = document.querySelectorAll('[id^="check-"]');
+    
+    // Validación de kilometraje
+    kilometrajeInput.addEventListener('input', function() {
+        const valorActual = {{ mantenimiento.equipo.kilometraje_actual }};
+        const valorIngresado = parseInt(this.value);
+        
+        if (valorIngresado < valorActual) {
+            this.classList.add('border-red-500');
+            mostrarError(this, `No puede ser menor a ${valorActual.toLocaleString()} km`);
+        } else {
+            this.classList.remove('border-red-500');
+            ocultarError(this);
+        }
+    });
+    
+    // Auto-completar observaciones
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                const texto = this.nextElementSibling.textContent;
+                agregarObservacion(texto);
+            }
+        });
+    });
+    
+    function agregarObservacion(texto) {
+        const observaciones = observacionesTextarea.value;
+        if (!observaciones.includes(texto)) {
+            const nuevoTexto = observaciones ? observaciones + '\n• ' + texto : '• ' + texto;
+            observacionesTextarea.value = nuevoTexto;
+        }
+    }
+    
+    function mostrarError(input, mensaje) {
+        let errorDiv = input.parentNode.querySelector('.error-message');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message mt-1 text-xs text-red-600';
+            input.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i>${mensaje}`;
+    }
+    
+    function ocultarError(input) {
+        const errorDiv = input.parentNode.querySelector('.error-message');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+    
+    // Confirmación antes de enviar
+    form.addEventListener('submit', function(e) {
+        const kilometraje = kilometrajeInput.value;
+        const observaciones = observacionesTextarea.value;
+        
+        if (!observaciones.trim()) {
+            if (!confirm('¿Continuar sin observaciones?')) {
+                e.preventDefault();
+                observacionesTextarea.focus();
+                return;
+            }
+        }
+        
+        if (!confirm('¿Confirmas completar este mantenimiento?')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Auto-save
+    let autoSaveTimer;
+    function autoSave() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => {
+            const data = {
+                kilometraje: kilometrajeInput.value,
+                observaciones: observacionesTextarea.value,
+                costo: document.getElementById('costo').value,
+                mantenimiento_id: {{ mantenimiento.pk }}
+            };
+            localStorage.setItem('completar_mantenimiento_draft', JSON.stringify(data));
+        }, 2000);
+    }
+    
+    [kilometrajeInput, observacionesTextarea, document.getElementById('costo')]
+        .forEach(input => input.addEventListener('input', autoSave));
+    
+    // Restaurar draft
+    const draft = localStorage.getItem('completar_mantenimiento_draft');
+    if (draft) {
+        const data = JSON.parse(draft);
+        if (data.mantenimiento_id === {{ mantenimiento.pk }}) {
+            if (confirm('¿Restaurar borrador guardado?')) {
+                kilometrajeInput.value = data.kilometraje || kilometrajeInput.value;
+                observacionesTextarea.value = data.observaciones || '';
+                document.getElementById('costo').value = data.costo || '';
+            }
+        }
+    }
+    
+    // Limpiar draft al completar
+    form.addEventListener('submit', function() {
+        localStorage.removeItem('completar_mantenimiento_draft');
+    });
+});
+</script>
+{% endblock %}

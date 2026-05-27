@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block title %}Reportes de Mantenimiento - Sistema de Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Header Mobile -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-chart-bar mr-2 text-purple-600"></i>
+                    Reportes
+                </h1>
+                <p class="text-sm text-gray-600">Análisis de mantenimientos</p>
+            </div>
+            <button onclick="exportarReporte()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg text-sm">
+                <i class="fas fa-download mr-1"></i>
+                PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros Mobile -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <button onclick="toggleFiltros()" class="w-full flex items-center justify-between text-gray-700 font-medium">
+            <span><i class="fas fa-filter mr-2"></i>Filtros de Reporte</span>
+            <i id="filtros-icon" class="fas fa-chevron-down"></i>
+        </button>
+        
+        <div id="filtros-content" class="hidden mt-3">
+            <form method="get" class="space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                        <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                        <input type="date" name="fecha_fin" value="{{ fecha_fin }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select name="estado" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Todos</option>
+                            {% for value, label in estados %}
+                                <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Equipo</label>
+                        <select name="equipo" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Todos</option>
+                            {% for equipo in equipos %}
+                                <option value="{{ equipo.id }}" {% if request.GET.equipo|stringformat:"s" == equipo.id|stringformat:"s" %}selected{% endif %}>{{ equipo.placa }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-2">
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm">
+                        <i class="fas fa-search mr-1"></i>
+                        Generar Reporte
+                    </button>
+                    <a href="{% url 'mantenimiento:reporte_mantenimientos' %}" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-3 rounded-lg text-sm text-center">
+                        <i class="fas fa-times mr-1"></i>
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estadísticas Resumen -->
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-list text-blue-600 text-lg"></i>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ total_mantenimientos }}</p>
+                <p class="text-xs text-gray-600">Total</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-check-circle text-green-600 text-lg"></i>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ completados }}</p>
+                <p class="text-xs text-gray-600">Completados</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-clock text-yellow-600 text-lg"></i>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ pendientes }}</p>
+                <p class="text-xs text-gray-600">Pendientes</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-center">
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                </div>
+                <p class="text-2xl font-bold text-gray-900">{{ vencidos }}</p>
+                <p class="text-xs text-gray-600">Vencidos</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Costo Total -->
+    {% if costo_total %}
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-dollar-sign text-purple-600 text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Costo Total del Período</p>
+                        <p class="text-2xl font-bold text-gray-900">${{ costo_total|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Gráfico de Estado -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">
+                <i class="fas fa-chart-pie mr-2"></i>
+                Distribución por Estado
+            </h2>
+        </div>
+        <div class="p-4">
+            <div class="h-48">
+                <canvas id="estadosChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Mantenimientos en el Reporte -->
+    {% if mantenimientos %}
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-list mr-2"></i>
+                    Mantenimientos del Período
+                </h2>
+                <p class="text-sm text-gray-600">{{ fecha_inicio|date:"d/m/Y" }} - {{ fecha_fin|date:"d/m/Y" }}</p>
+            </div>
+            
+            <div class="p-4 space-y-3">
+                {% for mantenimiento in mantenimientos|slice:":10" %}
+                    <div class="border border-gray-200 rounded-lg p-3">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ mantenimiento.equipo.placa }}</h3>
+                                <p class="text-sm text-gray-600">{{ mantenimiento.operador.nombre }}</p>
+                            </div>
+                            <span class="inline-block px-2 py-1 text-xs font-medium rounded-full
+                                {% if mantenimiento.estado == 'completado' %}bg-green-100 text-green-800
+                                {% elif mantenimiento.estado == 'vencido' %}bg-red-100 text-red-800
+                                {% elif mantenimiento.estado == 'en_proceso' %}bg-blue-100 text-blue-800
+                                {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                {{ mantenimiento.get_estado_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div>
+                                <p class="text-gray-600">Fecha:</p>
+                                <p class="font-medium">{{ mantenimiento.fecha_programada|date:"d/m/Y" }}</p>
+                                {% if mantenimiento.fecha_completado %}
+                                    <p class="text-green-600 text-xs">Completado: {{ mantenimiento.fecha_completado|date:"d/m/Y" }}</p>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="text-gray-600">Tipo:</p>
+                                <p class="font-medium">{{ mantenimiento.tipo_mantenimiento.nombre }}</p>
+                                {% if mantenimiento.costo %}
+                                    <p class="text-purple-600 text-xs">Costo: ${{ mantenimiento.costo }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if mantenimiento.observaciones %}
+                            <div class="mt-2 p-2 bg-gray-50 rounded text-xs">
+                                <strong>Observaciones:</strong> {{ mantenimiento.observaciones|truncatechars:100 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                {% if mantenimientos|length > 10 %}
+                    <div class="text-center pt-3 border-t border-gray-200">
+                        <p class="text-sm text-gray-600">Y {{ mantenimientos|length|add:"-10" }} mantenimientos más...</p>
+                        <a href="{% url 'mantenimiento:list' %}?{% for key, value in request.GET.items %}{{ key }}={{ value }}&{% endfor %}" 
+                           class="text-blue-600 text-sm font-medium">
+                            Ver lista completa →
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <i class="fas fa-chart-bar text-gray-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay datos para el reporte</h3>
+            <p class="text-gray-500 text-sm mb-4">No se encontraron mantenimientos en el período seleccionado.</p>
+            <button onclick="toggleFiltros()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg">
+                <i class="fas fa-filter mr-2"></i>
+                Ajustar Filtros
+            </button>
+        </div>
+    {% endif %}
+
+    <!-- Resumen Detallado -->
+    {% if mantenimientos %}
+        <div class="bg-white rounded-lg shadow">
+            <div class="p-4 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Resumen del Período
+                </h2>
+            </div>
+            <div class="p-4">
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Período de análisis:</span>
+                        <span class="font-medium">{{ fecha_inicio|date:"d/m/Y" }} - {{ fecha_fin|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total de mantenimientos:</span>
+                        <span class="font-medium">{{ total_mantenimientos }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tasa de finalización:</span>
+                        <span class="font-medium">
+                            {% if total_mantenimientos > 0 %}
+                                {% comment %} {{ completados|mul:100|div:total_mantenimientos|floatformat:1 }}% {% endcomment %}
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if costo_total %}
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Costo total:</span>
+                            <span class="font-medium text-purple-600">${{ costo_total|floatformat:2 }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Costo promedio:</span>
+                            {% comment %} <span class="font-medium">${{ costo_total|div:completados|floatformat:2 }}</span> {% endcomment %}
+                        </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Fecha de generación:</span>
+                        <span class="font-medium">{{ "now"|date:"d/m/Y H:i" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleFiltros() {
+    const content = document.getElementById('filtros-content');
+    const icon = document.getElementById('filtros-icon');
+    
+    content.classList.toggle('hidden');
+    
+    if (content.classList.contains('hidden')) {
+        icon.className = 'fas fa-chevron-down';
+    } else {
+        icon.className = 'fas fa-chevron-up';
+    }
+}
+
+function exportarReporte() {
+    // Implementar exportación a PDF
+    alert('Función de exportación a PDF en desarrollo');
+    // window.print(); // Alternativa simple para imprimir
+}
+
+// Gráfico de estados
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('estadosChart');
+    if (ctx) {
+        new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Completados', 'Pendientes', 'Vencidos'],
+                datasets: [{
+                    data: [{{ completados }}, {{ pendientes }}, {{ vencidos }}],
+                    backgroundColor: [
+                        '#10b981', // Green
+                        '#f59e0b', // Yellow
+                        '#ef4444'  // Red
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            fontSize: 12,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

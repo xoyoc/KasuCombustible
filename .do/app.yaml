@@ -1,0 +1,150 @@
+# .do/app.yaml - Configuración para DigitalOcean App Platform
+name: combustible-app
+services:
+  # Servicio Web Principal (Django)
+  - name: web
+    source_dir: /
+    github:
+      repo: tu-usuario/LogincoCobustible
+      branch: main
+      deploy_on_push: true
+    run_command: gunicorn --bind 0.0.0.0:$PORT combustible.wsgi:application --workers 2 --timeout 120
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 8080
+    routes:
+      - path: /
+    envs:
+      - key: DJANGO_SETTINGS_MODULE
+        value: combustible.settings
+      - key: PORT
+        value: "8080"
+      - key: PYTHONPATH
+        value: "/app"
+    health_check:
+      http_path: /
+      initial_delay_seconds: 10
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+  # Servicio Worker (Celery)
+  - name: worker
+    source_dir: /
+    github:
+      repo: tu-usuario/LogincoCobustible
+      branch: main
+      deploy_on_push: true
+    run_command: celery -A combustible worker --loglevel=info --concurrency=2 --max-tasks-per-child=1000
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: DJANGO_SETTINGS_MODULE
+        value: combustible.settings
+      - key: PYTHONPATH
+        value: "/app"
+    health_check:
+      http_path: /health/celery
+      initial_delay_seconds: 30
+      period_seconds: 30
+      timeout_seconds: 10
+      success_threshold: 1
+      failure_threshold: 3
+
+  # Servicio Scheduler (Celery Beat)
+  - name: scheduler
+    source_dir: /
+    github:
+      repo: tu-usuario/LogincoCobustible
+      branch: main
+      deploy_on_push: true
+    run_command: celery -A combustible beat --loglevel=info --pidfile=/tmp/celerybeat.pid
+    environment_slug: python
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    envs:
+      - key: DJANGO_SETTINGS_MODULE
+        value: combustible.settings
+      - key: PYTHONPATH
+        value: "/app"
+    health_check:
+      http_path: /health/scheduler
+      initial_delay_seconds: 30
+      period_seconds: 30
+      timeout_seconds: 10
+      success_threshold: 1
+      failure_threshold: 3
+
+# Base de datos PostgreSQL
+databases:
+  - name: combustible-db
+    engine: PG
+    version: "15"
+    size: db-s-dev-database
+    num_nodes: 1
+
+# Redis para Celery
+databases:
+  - name: combustible-redis
+    engine: REDIS
+    version: "7"
+    size: db-s-dev-database
+    num_nodes: 1
+
+# Variables de entorno globales
+envs:
+  - key: SECRET_KEY
+    value: "tu-secret-key-super-seguro-aqui"
+    type: SECRET
+  - key: DEBUG
+    value: "False"
+  - key: ALLOWED_HOSTS
+    value: "squid-app-5j4xm.ondigitalocean.app,tu-dominio.com"
+  - key: USE_SPACES
+    value: "True"
+  - key: DJANGO_SETTINGS_MODULE
+    value: "combustible.settings"
+  - key: PYTHONPATH
+    value: "/app"
+  - key: CELERY_BROKER_URL
+    value: "${combustible-redis.DATABASE_URL}"
+  - key: CELERY_RESULT_BACKEND
+    value: "${combustible-redis.DATABASE_URL}"
+  - key: DJANGO_DB_URL
+    value: "${combustible-db.DATABASE_URL}"
+  - key: DO_SPACES_ACCESS_KEY
+    value: "tu-access-key"
+    type: SECRET
+  - key: DO_SPACES_SECRET_KEY
+    value: "tu-secret-key"
+    type: SECRET
+  - key: DO_SPACES_BUCKET_NAME
+    value: "tu-bucket-name"
+  - key: DO_SPACES_ENDPOINT_URL
+    value: "https://nyc3.digitaloceanspaces.com"
+  - key: DO_SPACES_REGION
+    value: "nyc3"
+  - key: WHATSAPP_PHONE_NUMBER_ID
+    value: "tu-phone-number-id"
+    type: SECRET
+  - key: WHATSAPP_ACCESS_TOKEN
+    value: "tu-access-token"
+    type: SECRET
+  - key: WHATSAPP_VERIFY_TOKEN
+    value: "tu-verify-token"
+    type: SECRET
+  - key: EMAIL_HOST_PASSWORD
+    value: "tu-sendgrid-api-key"
+    type: SECRET
+
+# Configuración de dominio
+domains:
+  - domain: tu-dominio.com
+    type: PRIMARY
+    zone: tu-dominio.com
+  - domain: www.tu-dominio.com
+    type: ALIAS
+    zone: tu-dominio.com

@@ -1,0 +1,873 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if form.instance.pk %}Editar Equipo{% else %}Nuevo Equipo{% endif %}
+{% endblock %}
+
+{% block header_title %}
+    <i class="fas fa-truck mr-2"></i>
+    {% if form.instance.pk %}Editar Equipo{% else %}Nuevo Equipo{% endif %}
+{% endblock %}
+
+{% block content %}
+<form method="post" id="equipoForm" class="space-y-6">
+    {% csrf_token %}
+    
+    <!-- Información Principal del Equipo -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover">
+        <div class="gradient-primary text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-info-circle mr-3"></i>
+                Información del Equipo
+            </h2>
+        </div>
+        <div class="p-6 space-y-6">
+            <!-- Placa del Vehículo -->
+            <div>
+                <label for="{{ form.placa.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-id-card mr-2 text-blue-500"></i>
+                    Placa del Vehículo *
+                </label>
+                <div class="relative">
+                    <input type="text" name="{{ form.placa.name }}" 
+                           id="{{ form.placa.id_for_label }}"
+                           value="{{ form.placa.value|default:'' }}"
+                           maxlength="7"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg uppercase font-mono tracking-wider"
+                           placeholder="ABC-123">
+                    <div class="absolute right-3 top-3 text-gray-400">
+                        <i id="placaIcon" class="fas fa-check-circle text-green-500 hidden"></i>
+                        <i id="placaError" class="fas fa-exclamation-circle text-red-500 hidden"></i>
+                    </div>
+                </div>
+                {% if form.placa.errors %}
+                    <p class="mt-1 text-sm text-red-600 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        {{ form.placa.errors.0 }}
+                    </p>
+                {% endif %}
+                <div class="text-sm text-gray-500 mt-1 flex items-center">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Formato: ABC-123 (3 letras, guión, 3 números)
+                </div>
+            </div>
+
+            <!-- Marca y Modelo -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.marca.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-industry mr-2 text-green-500"></i>
+                        Marca *
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="{{ form.marca.name }}" 
+                               id="{{ form.marca.id_for_label }}"
+                               value="{{ form.marca.value|default:'' }}"
+                               list="marcasComunes"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg"
+                               placeholder="Toyota, Ford, Chevrolet...">
+                        <div class="absolute right-3 top-3">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
+                    {% if form.marca.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.marca.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="{{ form.modelo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-car mr-2 text-purple-500"></i>
+                        Modelo *
+                    </label>
+                    <input type="text" name="{{ form.modelo.name }}" 
+                           id="{{ form.modelo.id_for_label }}"
+                           value="{{ form.modelo.value|default:'' }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg"
+                           placeholder="Corolla, F-150, Silverado...">
+                    {% if form.modelo.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.modelo.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Año y Capacidad del Tanque -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.year.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                        Año *
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="{{ form.year.name }}" 
+                               id="{{ form.year.id_for_label }}"
+                               value="{{ form.year.value|default:'' }}"
+                               min="1900" max="2026"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg"
+                               placeholder="2023">
+                        <div class="absolute right-3 top-3">
+                            <i id="yearIcon" class="fas fa-calendar-alt text-gray-400"></i>
+                        </div>
+                    </div>
+                    {% if form.year.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.year.errors.0 }}</p>
+                    {% endif %}
+                    <div class="text-sm text-gray-500 mt-1">Año de fabricación del vehículo</div>
+                </div>
+                <div>
+                    <label for="{{ form.capacidad_tanque.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-gas-pump mr-2 text-yellow-500"></i>
+                        Capacidad del Tanque (Litros) *
+                    </label>
+                    <div class="relative">
+                        <input type="number" name="{{ form.capacidad_tanque.name }}" 
+                               id="{{ form.capacidad_tanque.id_for_label }}"
+                               value="{{ form.capacidad_tanque.value|default:'' }}"
+                               min="1" max="1000"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-lg"
+                               placeholder="60">
+                        <div class="absolute right-3 top-3">
+                            <span class="text-gray-400 text-sm">L</span>
+                        </div>
+                    </div>
+                    {% if form.capacidad_tanque.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.capacidad_tanque.errors.0 }}</p>
+                    {% endif %}
+                    <div class="text-sm text-gray-500 mt-1">Capacidad total del tanque de combustible</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista Previa del Equipo -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden card-hover" id="vistaPrevia" style="display: none;">
+        <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-eye mr-3"></i>
+                Vista Previa del Equipo
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    <div class="h-20 w-20 bg-gradient-to-r from-green-500 to-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-truck text-3xl"></i>
+                    </div>
+                    <div class="absolute -top-2 -right-2 h-6 w-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check text-white text-xs"></i>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h3 id="previewPlaca" class="text-2xl font-bold text-gray-900 mb-1 font-mono tracking-wider">ABC-123</h3>
+                    <p id="previewMarcaModelo" class="text-lg text-gray-600 mb-3">Toyota Corolla</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-blue-50 rounded-lg p-3">
+                            <div class="flex items-center text-blue-600">
+                                <i class="fas fa-calendar mr-2"></i>
+                                <span class="font-medium">Año</span>
+                            </div>
+                            <div id="previewYear" class="text-xl font-bold text-blue-800">2023</div>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-3">
+                            <div class="flex items-center text-yellow-600">
+                                <i class="fas fa-gas-pump mr-2"></i>
+                                <span class="font-medium">Tanque</span>
+                            </div>
+                            <div id="previewCapacidad" class="text-xl font-bold text-yellow-800">60L</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información Calculada -->
+    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200" id="infoCalculada" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+            <i class="fas fa-calculator text-blue-500 mr-2"></i>
+            Información Calculada Automáticamente
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600">Antigüedad</span>
+                    <i class="fas fa-clock text-blue-500"></i>
+                </div>
+                <div id="antiguedad" class="text-2xl font-bold text-blue-600">0 años</div>
+                <div id="estadoVehiculo" class="text-xs text-gray-500 mt-1">Nuevo</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-green-100">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600">Categoría</span>
+                    <i class="fas fa-tag text-green-500"></i>
+                </div>
+                <div id="categoria" class="text-lg font-bold text-green-600">Compacto</div>
+                <div id="tipoVehiculo" class="text-xs text-gray-500 mt-1">Vehículo estándar</div>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-purple-100">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-600">Autonomía Est.</span>
+                    <i class="fas fa-route text-purple-500"></i>
+                </div>
+                <div id="autonomia" class="text-2xl font-bold text-purple-600">600 km</div>
+                <div class="text-xs text-gray-500 mt-1">Con tanque lleno</div>
+            </div>
+        </div>
+        
+        <!-- Indicadores de eficiencia -->
+        <div class="mt-6 bg-white rounded-xl p-4 border border-gray-200">
+            <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                <i class="fas fa-chart-line text-indigo-500 mr-2"></i>
+                Indicadores de Eficiencia
+            </h4>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center">
+                    <div id="eficienciaCombustible" class="text-lg font-bold text-indigo-600">12 km/L</div>
+                    <div class="text-xs text-gray-500">Eficiencia estimada</div>
+                </div>
+                <div class="text-center">
+                    <div id="costoKm" class="text-lg font-bold text-orange-600">$0.50/km</div>
+                    <div class="text-xs text-gray-500">Costo estimado por km</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recomendaciones Inteligentes -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden" id="recomendaciones" style="display: none;">
+        <div class="bg-gradient-to-r from-green-500 to-teal-600 text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-lightbulb mr-3"></i>
+                Recomendaciones Inteligentes
+            </h2>
+        </div>
+        <div class="p-6">
+            <div id="listaRecomendaciones" class="space-y-3">
+                <!-- Las recomendaciones se llenarán dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="space-y-3">
+        <button type="submit" id="submitBtn" class="w-full gradient-primary text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fas fa-save mr-2"></i>
+            <span id="submitText">{% if form.instance.pk %}Actualizar Equipo{% else %}Guardar Equipo{% endif %}</span>
+        </button>
+        <a href="{% url 'equipo_list' %}" class="w-full block text-center bg-gray-100 text-gray-700 py-4 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Cancelar
+        </a>
+    </div>
+</form>
+
+<!-- Datalist para marcas comunes -->
+<datalist id="marcasComunes">
+    <option value="Toyota">
+    <option value="Ford">
+    <option value="Chevrolet">
+    <option value="Nissan">
+    <option value="Honda">
+    <option value="Hyundai">
+    <option value="Kia">
+    <option value="Mazda">
+    <option value="Volkswagen">
+    <option value="Renault">
+    <option value="Peugeot">
+    <option value="Fiat">
+    <option value="Mitsubishi">
+    <option value="Suzuki">
+    <option value="Isuzu">
+    <option value="Mercedes-Benz">
+    <option value="BMW">
+    <option value="Audi">
+    <option value="Volvo">
+    <option value="Scania">
+</datalist>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('equipoForm');
+    const placaInput = document.getElementById('{{ form.placa.id_for_label }}');
+    const marcaInput = document.getElementById('{{ form.marca.id_for_label }}');
+    const modeloInput = document.getElementById('{{ form.modelo.id_for_label }}');
+    const yearInput = document.getElementById('{{ form.year.id_for_label }}');
+    const capacidadInput = document.getElementById('{{ form.capacidad_tanque.id_for_label }}');
+    
+    const vistaPrevia = document.getElementById('vistaPrevia');
+    const infoCalculada = document.getElementById('infoCalculada');
+    const recomendaciones = document.getElementById('recomendaciones');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+
+    // Precio promedio del combustible (configurable)
+    const PRECIO_COMBUSTIBLE = 25.50; // Pesos por litro
+
+    // Función principal para actualizar toda la información
+    function actualizarInformacion() {
+        const placa = placaInput.value.trim();
+        const marca = marcaInput.value.trim();
+        const modelo = modeloInput.value.trim();
+        const year = parseInt(yearInput.value) || 0;
+        const capacidad = parseInt(capacidadInput.value) || 0;
+
+        // Actualizar vista previa
+        actualizarVistaPrevia(placa, marca, modelo, year, capacidad);
+        
+        // Actualizar información calculada
+        if (year && capacidad) {
+            actualizarInformacionCalculada(year, capacidad, marca);
+            infoCalculada.style.display = 'block';
+            
+            // Generar recomendaciones
+            generarRecomendaciones(year, capacidad, marca);
+            recomendaciones.style.display = 'block';
+        } else {
+            infoCalculada.style.display = 'none';
+            recomendaciones.style.display = 'none';
+        }
+
+        // Validar formulario en tiempo real
+        validarFormulario();
+    }
+
+    function actualizarVistaPrevia(placa, marca, modelo, year, capacidad) {
+        if (placa || marca || modelo) {
+            vistaPrevia.style.display = 'block';
+            document.getElementById('previewPlaca').textContent = placa || 'ABC-123';
+            document.getElementById('previewMarcaModelo').textContent = `${marca} ${modelo}`.trim() || 'Marca Modelo';
+            document.getElementById('previewYear').textContent = year || '2023';
+            document.getElementById('previewCapacidad').textContent = capacidad ? `${capacidad}L` : '60L';
+            
+            // Animación de actualización
+            vistaPrevia.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                vistaPrevia.style.transform = 'scale(1)';
+            }, 150);
+        } else {
+            vistaPrevia.style.display = 'none';
+        }
+    }
+
+    function actualizarInformacionCalculada(year, capacidad, marca) {
+        const currentYear = new Date().getFullYear();
+        const antiguedad = currentYear - year;
+        
+        // Determinar estado del vehículo
+        let estadoVehiculo = 'Nuevo';
+        if (antiguedad > 15) estadoVehiculo = 'Muy usado';
+        else if (antiguedad > 10) estadoVehiculo = 'Usado';
+        else if (antiguedad > 5) estadoVehiculo = 'Semi-nuevo';
+        else if (antiguedad > 2) estadoVehiculo = 'Poco uso';
+        
+        // Determinar categoría y tipo
+        let categoria = 'Compacto';
+        let tipoVehiculo = 'Vehículo estándar';
+        
+        if (capacidad >= 100) {
+            categoria = 'Muy Grande';
+            tipoVehiculo = 'Vehículo comercial/industrial';
+        } else if (capacidad >= 80) {
+            categoria = 'Grande';
+            tipoVehiculo = 'Vehículo de trabajo pesado';
+        } else if (capacidad >= 60) {
+            categoria = 'Mediano';
+            tipoVehiculo = 'Vehículo familiar/comercial';
+        } else if (capacidad >= 40) {
+            categoria = 'Compacto';
+            tipoVehiculo = 'Vehículo urbano';
+        } else {
+            categoria = 'Pequeño';
+            tipoVehiculo = 'Vehículo económico';
+        }
+        
+        // Calcular eficiencia basada en marca y capacidad
+        let eficiencia = 12; // km/L base
+        const marcasEficientes = ['Toyota', 'Honda', 'Nissan', 'Hyundai'];
+        if (marcasEficientes.includes(marca)) eficiencia += 2;
+        if (capacidad < 50) eficiencia += 1;
+        if (antiguedad > 10) eficiencia -= 2;
+        
+        const autonomia = Math.round(capacidad * eficiencia);
+        const costoKm = (PRECIO_COMBUSTIBLE / eficiencia).toFixed(2);
+        
+        // Actualizar elementos
+        document.getElementById('antiguedad').textContent = `${antiguedad} años`;
+        document.getElementById('estadoVehiculo').textContent = estadoVehiculo;
+        document.getElementById('categoria').textContent = categoria;
+        document.getElementById('tipoVehiculo').textContent = tipoVehiculo;
+        document.getElementById('autonomia').textContent = `${autonomia} km`;
+        document.getElementById('eficienciaCombustible').textContent = `${eficiencia} km/L`;
+        document.getElementById('costoKm').textContent = `$${costoKm}/km`;
+    }
+
+    function generarRecomendaciones(year, capacidad, marca) {
+        const recomendacionesContainer = document.getElementById('listaRecomendaciones');
+        const currentYear = new Date().getFullYear();
+        const antiguedad = currentYear - year;
+        let recomendacionesList = [];
+
+        // Recomendaciones basadas en antigüedad
+        if (antiguedad > 15) {
+            recomendacionesList.push({
+                tipo: 'warning',
+                icono: 'exclamation-triangle',
+                titulo: 'Vehículo muy antiguo',
+                descripcion: 'Considere revisar el sistema de combustible regularmente y mantener registros detallados de eficiencia.'
+            });
+        } else if (antiguedad < 3) {
+            recomendacionesList.push({
+                tipo: 'success',
+                icono: 'check-circle',
+                titulo: 'Vehículo reciente',
+                descripcion: 'Aproveche la garantía y mantenga un mantenimiento preventivo riguroso.'
+            });
+        }
+
+        // Recomendaciones basadas en capacidad
+        if (capacidad > 80) {
+            recomendacionesList.push({
+                tipo: 'info',
+                icono: 'info-circle',
+                titulo: 'Tanque de gran capacidad',
+                descripcion: 'Ideal para rutas largas. Considere llevar un registro detallado del consumo para optimizar rutas.'
+            });
+        } else if (capacidad < 40) {
+            recomendacionesList.push({
+                tipo: 'warning',
+                icono: 'gas-pump',
+                titulo: 'Tanque pequeño',
+                descripcion: 'Planifique recargas frecuentes en rutas largas y mantenga estaciones de servicio en su GPS.'
+            });
+        }
+
+        // Recomendaciones basadas en marca
+        const marcasEconomicas = ['Toyota', 'Honda', 'Nissan'];
+        if (marcasEconomicas.includes(marca)) {
+            recomendacionesList.push({
+                tipo: 'success',
+                icono: 'leaf',
+                titulo: 'Marca eficiente',
+                descripcion: 'Esta marca es conocida por su eficiencia. Mantenga el motor bien afinado para maximizar el rendimiento.'
+            });
+        }
+
+        // Recomendación general
+        recomendacionesList.push({
+            tipo: 'info',
+            icono: 'chart-line',
+            titulo: 'Monitoreo recomendado',
+            descripcion: 'Configure alertas para el mantenimiento preventivo cada 5,000 km o 6 meses.'
+        });
+
+        // Renderizar recomendaciones
+        recomendacionesContainer.innerHTML = recomendacionesList.map(rec => `
+            <div class="flex items-start space-x-3 p-3 rounded-lg border-l-4 ${getBorderColor(rec.tipo)} ${getBgColor(rec.tipo)}">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-${rec.icono} ${getIconColor(rec.tipo)} text-lg mt-1"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-800 text-sm">${rec.titulo}</h4>
+                    <p class="text-gray-600 text-sm mt-1">${rec.descripcion}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function getBorderColor(tipo) {
+        const colors = {
+            success: 'border-green-400',
+            warning: 'border-yellow-400',
+            info: 'border-blue-400',
+            error: 'border-red-400'
+        };
+        return colors[tipo] || colors.info;
+    }
+
+    function getBgColor(tipo) {
+        const colors = {
+            success: 'bg-green-50',
+            warning: 'bg-yellow-50',
+            info: 'bg-blue-50',
+            error: 'bg-red-50'
+        };
+        return colors[tipo] || colors.info;
+    }
+
+    function getIconColor(tipo) {
+        const colors = {
+            success: 'text-green-600',
+            warning: 'text-yellow-600',
+            info: 'text-blue-600',
+            error: 'text-red-600'
+        };
+        return colors[tipo] || colors.info;
+    }
+
+    // Formateo automático de placa
+    if (placaInput) {
+        placaInput.addEventListener('input', function() {
+            let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            if (value.length > 3) {
+                value = value.substring(0, 3) + '-' + value.substring(3, 6);
+            }
+            this.value = value;
+            
+            // Validar formato en tiempo real
+            const placaIcon = document.getElementById('placaIcon');
+            const placaError = document.getElementById('placaError');
+            const placaRegex = /^[A-Z]{3}-[0-9]{3}$/;
+            
+            if (value.length === 7 && placaRegex.test(value)) {
+                this.classList.remove('border-red-500', 'border-yellow-500');
+                this.classList.add('border-green-500');
+                placaIcon.classList.remove('hidden');
+                placaError.classList.add('hidden');
+            } else if (value.length > 0) {
+                this.classList.remove('border-green-500');
+                this.classList.add('border-yellow-500');
+                placaIcon.classList.add('hidden');
+                placaError.classList.remove('hidden');
+            } else {
+                this.classList.remove('border-red-500', 'border-yellow-500', 'border-green-500');
+                placaIcon.classList.add('hidden');
+                placaError.classList.add('hidden');
+            }
+            
+            actualizarInformacion();
+        });
+    }
+
+    // Capitalizar marca y modelo
+    [marcaInput, modeloInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', function() {
+                let value = this.value.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                this.value = value;
+                actualizarInformacion();
+            });
+        }
+    });
+
+    // Validación de año
+    if (yearInput) {
+        yearInput.addEventListener('input', function() {
+            const currentYear = new Date().getFullYear();
+            const inputYear = parseInt(this.value);
+            
+            if (inputYear > currentYear + 1) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300', 'border-green-500');
+            } else if (inputYear < 1900) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300', 'border-green-500');
+            } else if (inputYear >= 1900 && inputYear <= currentYear + 1) {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-green-500');
+            } else {
+                this.classList.remove('border-red-500', 'border-green-500');
+                this.classList.add('border-gray-300');
+            }
+            
+            actualizarInformacion();
+        });
+    }
+
+    // Validación de capacidad
+    if (capacidadInput) {
+        capacidadInput.addEventListener('input', function() {
+            const capacidad = parseInt(this.value);
+            
+            if (capacidad <= 0 || capacidad > 1000) {
+                this.classList.add('border-red-500');
+                this.classList.remove('border-gray-300', 'border-green-500');
+            } else if (capacidad > 0 && capacidad <= 1000) {
+                this.classList.remove('border-red-500');
+                this.classList.add('border-green-500');
+            } else {
+                this.classList.remove('border-red-500', 'border-green-500');
+                this.classList.add('border-gray-300');
+            }
+            
+            actualizarInformacion();
+        });
+    }
+
+    // Eventos para otros campos
+    [marcaInput, modeloInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', actualizarInformacion);
+        }
+    });
+
+    // Validación completa del formulario
+    function validarFormulario() {
+        const placa = placaInput?.value.trim();
+        const marca = marcaInput?.value.trim();
+        const modelo = modeloInput?.value.trim();
+        const year = yearInput?.value.trim();
+        const capacidad = capacidadInput?.value.trim();
+
+        const placaValida = /^[A-Z]{3}-[0-9]{3}$/.test(placa);
+        const yearValido = year && parseInt(year) >= 1900 && parseInt(year) <= new Date().getFullYear() + 1;
+        const capacidadValida = capacidad && parseInt(capacidad) > 0 && parseInt(capacidad) <= 1000;
+
+        const formularioValido = placaValida && marca && modelo && yearValido && capacidadValida;
+
+        // Actualizar estado del botón
+        submitBtn.disabled = !formularioValido;
+        
+        if (formularioValido) {
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.add('hover:shadow-xl', 'transform', 'hover:-translate-y-1');
+            submitText.textContent = '{% if form.instance.pk %}✓ Actualizar Equipo{% else %}✓ Guardar Equipo{% endif %}';
+        } else {
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.remove('hover:shadow-xl', 'transform', 'hover:-translate-y-1');
+            submitText.textContent = '{% if form.instance.pk %}Completar datos para actualizar{% else %}Completar datos para guardar{% endif %}';
+        }
+
+        return formularioValido;
+    }
+
+    // Validación al enviar el formulario
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        const errores = [];
+
+        // Validar placa
+        const placa = placaInput?.value.trim();
+        if (!placa) {
+            errores.push('La placa es obligatoria');
+            placaInput?.classList.add('border-red-500');
+            isValid = false;
+        } else if (!/^[A-Z]{3}-[0-9]{3}$/.test(placa)) {
+            errores.push('La placa debe tener el formato ABC-123');
+            placaInput?.classList.add('border-red-500');
+            isValid = false;
+        }
+
+        // Validar marca
+        const marca = marcaInput?.value.trim();
+        if (!marca || marca.length < 2) {
+            errores.push('La marca debe tener al menos 2 caracteres');
+            marcaInput?.classList.add('border-red-500');
+            isValid = false;
+        }
+
+        // Validar modelo
+        const modelo = modeloInput?.value.trim();
+        if (!modelo || modelo.length < 2) {
+            errores.push('El modelo debe tener al menos 2 caracteres');
+            modeloInput?.classList.add('border-red-500');
+            isValid = false;
+        }
+
+        // Validar año
+        const year = parseInt(yearInput?.value);
+        const currentYear = new Date().getFullYear();
+        if (!year || year < 1900 || year > currentYear + 1) {
+            errores.push(`El año debe estar entre 1900 y ${currentYear + 1}`);
+            yearInput?.classList.add('border-red-500');
+            isValid = false;
+        }
+
+        // Validar capacidad
+        const capacidad = parseInt(capacidadInput?.value);
+        if (!capacidad || capacidad <= 0 || capacidad > 1000) {
+            errores.push('La capacidad debe estar entre 1 y 1000 litros');
+            capacidadInput?.classList.add('border-red-500');
+            isValid = false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            
+            // Mostrar errores
+            mostrarNotificacion(
+                `Se encontraron ${errores.length} error${errores.length > 1 ? 'es' : ''}:<br>• ${errores.join('<br>• ')}`, 
+                'error'
+            );
+            
+            // Scroll al primer campo con error
+            const firstError = form.querySelector('.border-red-500');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => firstError.focus(), 300);
+            }
+        } else {
+            // Mostrar indicador de carga
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Guardando...';
+            submitBtn.disabled = true;
+        }
+    });
+
+    // Función para mostrar notificaciones
+    function mostrarNotificacion(mensaje, tipo = 'info') {
+        const colors = {
+            error: 'bg-red-500',
+            success: 'bg-green-500',
+            warning: 'bg-yellow-500',
+            info: 'bg-blue-500'
+        };
+        
+        const icons = {
+            error: 'exclamation-triangle',
+            success: 'check-circle',
+            warning: 'exclamation-circle',
+            info: 'info-circle'
+        };
+        
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 ${colors[tipo]} text-white px-6 py-4 rounded-xl shadow-lg z-50 max-w-md transform translate-x-full transition-transform duration-300`;
+        notification.innerHTML = `
+            <div class="flex items-start">
+                <i class="fas fa-${icons[tipo]} mr-3 mt-1 flex-shrink-0"></i>
+                <div class="flex-1">${mensaje}</div>
+                <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-white/80 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 100);
+        
+        // Auto-cerrar después de 5 segundos para errores, 3 para otros
+        const autoCloseTime = tipo === 'error' ? 5000 : 3000;
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    document.body.removeChild(notification);
+                }
+            }, 300);
+        }, autoCloseTime);
+    }
+
+    // Funcionalidad adicional: Sugerencias inteligentes
+    function mostrarSugerencias() {
+        if (marcaInput && marcaInput.value.length >= 2) {
+            const marca = marcaInput.value.toLowerCase();
+            const modelosSugeridos = {
+                'toyota': ['Corolla', 'Camry', 'RAV4', 'Hilux', 'Prius'],
+                'ford': ['F-150', 'Explorer', 'Focus', 'Mustang', 'Escape'],
+                'chevrolet': ['Silverado', 'Equinox', 'Malibu', 'Camaro', 'Tahoe'],
+                'nissan': ['Sentra', 'Altima', 'Rogue', 'Frontier', 'Pathfinder'],
+                'honda': ['Civic', 'Accord', 'CR-V', 'Pilot', 'Fit']
+            };
+
+            if (modelosSugeridos[marca] && !modeloInput.value) {
+                // Mostrar sugerencia discreta
+                const sugerencia = document.createElement('div');
+                sugerencia.className = 'text-xs text-blue-600 mt-1 fade-in';
+                sugerencia.innerHTML = `💡 Modelos populares: ${modelosSugeridos[marca].slice(0, 3).join(', ')}`;
+                
+                // Remover sugerencia anterior
+                const sugerenciaAnterior = modeloInput.parentElement.querySelector('.text-blue-600');
+                if (sugerenciaAnterior) {
+                    sugerenciaAnterior.remove();
+                }
+                
+                modeloInput.parentElement.appendChild(sugerencia);
+                
+                setTimeout(() => {
+                    if (document.contains(sugerencia)) {
+                        sugerencia.remove();
+                    }
+                }, 5000);
+            }
+        }
+    }
+
+    // Agregar evento para sugerencias
+    if (marcaInput) {
+        marcaInput.addEventListener('blur', mostrarSugerencias);
+    }
+
+    // Funcionalidad de guardado automático (opcional)
+    let autoSaveTimeout;
+    function autoSave() {
+        clearTimeout(autoSaveTimeout);
+        autoSaveTimeout = setTimeout(() => {
+            if (validarFormulario()) {
+                const formData = new FormData(form);
+                // Aquí podrías implementar guardado automático via AJAX
+                console.log('Auto-guardado activado (simulado)');
+            }
+        }, 3000); // Guardar después de 3 segundos de inactividad
+    }
+
+    // Agregar listeners para auto-guardado
+    [placaInput, marcaInput, modeloInput, yearInput, capacidadInput].forEach(input => {
+        if (input) {
+            input.addEventListener('input', autoSave);
+        }
+    });
+
+    // Inicialización: actualizar información si hay datos previos
+    actualizarInformacion();
+
+    // Animación de entrada para las secciones
+    const sections = document.querySelectorAll('.card-hover, #infoCalculada, #recomendaciones');
+    sections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            section.style.transition = 'all 0.5s ease';
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+
+    // Mensaje de bienvenida para nuevos usuarios
+    {% if not form.instance.pk %}
+    setTimeout(() => {
+        mostrarNotificacion(
+            '¡Bienvenido! Complete la información del equipo y vea cómo se calculan automáticamente las estadísticas.',
+            'info'
+        );
+    }, 1000);
+    {% endif %}
+});
+
+// Estilos CSS adicionales para animaciones
+const style = document.createElement('style');
+style.textContent = `
+    .fade-in {
+        animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card-hover {
+        transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    
+    input:focus {
+        transform: scale(1.02);
+        transition: all 0.2s ease;
+    }
+    
+    .gradient-primary {
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    }
+    
+    #submitBtn:not(:disabled):hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+🚨 ALERTA CRÍTICA: MANTENIMIENTO VENCIDO 🚨
+
+Estimado Supervisor,
+
+Se ha detectado un mantenimiento VENCIDO que requiere su atención inmediata.
+
+DETALLES DEL MANTENIMIENTO VENCIDO:
+==================================
+Equipo: {{ equipo.placa }}
+Marca/Modelo: {{ equipo.marca }} {{ equipo.modelo }} ({{ equipo.year }})
+Operador Responsable: {{ operador.nombre }}
+Email del Operador: {{ operador.email }}
+Teléfono del Operador: {{ operador.movil }}
+
+INFORMACIÓN DEL MANTENIMIENTO:
+=============================
+Tipo: {{ mantenimiento.tipo_mantenimiento.nombre }}
+Fecha Programada: {{ mantenimiento.fecha_programada|date:"d/m/Y" }}
+Días Vencido: {{ dias_vencido }}
+Kilometraje Programado: {{ mantenimiento.kilometraje_programado|floatformat:0 }} km
+Kilometraje Actual: {{ equipo.kilometraje_actual|floatformat:0 }} km
+
+{% if mantenimiento.observaciones %}
+Observaciones Adicionales:
+{{ mantenimiento.observaciones }}
+{% endif %}
+
+⚠️  ACCIONES REQUERIDAS INMEDIATAMENTE:
+======================================
+1. CONTACTAR al operador responsable
+2. VERIFICAR el estado actual del equipo
+3. COORDINAR mantenimiento urgente
+4. EVALUAR posibles daños por retraso
+5. ACTUALIZAR el sistema una vez completado
+
+RIESGOS POTENCIALES:
+===================
+- Daños mecánicos por falta de mantenimiento
+- Pérdida de garantía del fabricante
+- Incremento en costos de reparación
+- Tiempo de inactividad prolongado
+- Posibles accidentes por mal funcionamiento
+
+HISTORIAL DE NOTIFICACIONES:
+===========================
+Se enviaron recordatorios automáticos al operador los días previos al vencimiento.
+El sistema detectó el vencimiento y escaló automáticamente a supervisión.
+
+PRÓXIMOS PASOS:
+==============
+1. Contacte al operador {{ operador.nombre }} en {{ operador.email }} o {{ operador.movil }}
+2. Evalúe el estado actual del equipo {{ equipo.placa }}
+3. Coordine mantenimiento de emergencia si es necesario
+4. Documente las acciones tomadas
+5. Implemente medidas preventivas para evitar futuros retrasos
+
+Este reporte fue generado automáticamente por el Sistema de Mantenimiento.
+Para más información, acceda al sistema web o contacte al administrador.
+
+Fecha de generación: {{ "now"|date:"d/m/Y H:i:s" }}
+
+---
+Sistema de Mantenimiento de Equipos
+Reporte Automático de Supervisión

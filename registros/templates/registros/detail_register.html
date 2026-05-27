@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+
+{% block title %}Ticket #{{ registro.numero_tiket }}{% endblock %}
+
+{% block header_title %}
+    <i class="fas fa-receipt mr-2"></i>
+    Ticket #{{ registro.numero_tiket }}
+{% endblock %}
+
+{% block header_actions %}
+    <div class="relative">
+        <button onclick="toggleDropdown()" class="bg-white/20 text-white px-3 py-2 rounded-lg hover:bg-white/30 transition-colors">
+            <i class="fas fa-ellipsis-v"></i>
+        </button>
+        <div id="dropdownMenu" class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 hidden z-10">
+            <a href="{% url 'registro_update' registro.id %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-t-xl">
+                <i class="fas fa-edit mr-3 text-blue-500"></i>Editar
+            </a>
+            <hr class="border-gray-200">
+            <button onclick="confirmarEliminacion()" class="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-b-xl">
+                <i class="fas fa-trash mr-3"></i>Eliminar
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Información Principal -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="gradient-primary text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-info-circle mr-3"></i>
+                Información del Ticket
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Número de Ticket</h3>
+                    <p class="text-2xl font-bold text-gray-900">{{ registro.numero_tiket }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Fecha y Hora</h3>
+                    <p class="text-lg font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                        {{ registro.fecha_hora|date:"d/m/Y" }}
+                    </p>
+                    <p class="text-gray-500 flex items-center mt-1">
+                        <i class="fas fa-clock mr-2 text-gray-400"></i>
+                        {{ registro.fecha_hora|date:"H:i" }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-200 my-6"></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Cantidad de Litros</h3>
+                    <p class="text-3xl font-bold text-blue-600">
+                        {{ registro.Litros }}L
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Costo por Litro</h3>
+                    <p class="text-xl font-semibold text-gray-700">
+                        ${{ registro.costolitro }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Total Pagado</h3>
+                    <p class="text-4xl font-bold text-green-600 flex items-center">
+                        <i class="fas fa-dollar-sign mr-2 text-2xl"></i>
+                        {% comment %} {{ registro.Litros|mul:registro.costolitro|floatformat:2 }} {% endcomment %}
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Kilometraje</h3>
+                    <p class="text-xl font-semibold text-gray-700 flex items-center">
+                        <i class="fas fa-tachometer-alt mr-2 text-purple-500"></i>
+                        {{ registro.kilometraje }} km
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del Equipo -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="gradient-success text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-truck mr-3"></i>
+                Información del Equipo
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Placa</h3>
+                    <p class="text-2xl font-bold text-gray-900">{{ registro.idEquipo.placa }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Año</h3>
+                    <p class="text-lg text-gray-700">{{ registro.idEquipo.year }}</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Marca</h3>
+                    <p class="text-lg text-gray-700">{{ registro.idEquipo.marca }}</p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Modelo</h3>
+                    <p class="text-lg text-gray-700">{{ registro.idEquipo.modelo }}</p>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="text-sm font-medium text-gray-500 mb-1">Capacidad del Tanque</h3>
+                <p class="text-lg text-gray-700 flex items-center">
+                    <i class="fas fa-gas-pump mr-2 text-yellow-500"></i>
+                    {{ registro.idEquipo.capacidad_tanque }} litros
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del Operador -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-blue-500 text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-user mr-3"></i>
+                Información del Operador
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-500 mb-1">Nombre Completo</h3>
+                <p class="text-xl font-semibold text-gray-900">{{ registro.idOperador.nombre }}</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Email</h3>
+                    <p class="flex items-center">
+                        <i class="fas fa-envelope mr-2 text-blue-500"></i>
+                        <a href="mailto:{{ registro.idOperador.email }}" class="text-blue-600 hover:text-blue-800 transition-colors">{{ registro.idOperador.email }}</a>
+                    </p>
+                </div>
+                <div>
+                    <h3 class="text-sm font-medium text-gray-500 mb-1">Teléfono Móvil</h3>
+                    <p class="flex items-center">
+                        <i class="fas fa-phone mr-2 text-green-500"></i>
+                        <a href="tel:{{ registro.idOperador.movil }}" class="text-green-600 hover:text-green-800 transition-colors">{{ registro.idOperador.movil }}</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Foto del Ticket -->
+    {% if registro.photo_tiket %}
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="gradient-warning text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-camera mr-3"></i>
+                Foto del Ticket
+            </h2>
+        </div>
+        <div class="p-6 text-center">
+            <img src="{{ registro.photo_tiket.url }}" 
+                 class="max-w-full h-auto rounded-xl shadow-lg cursor-pointer hover:shadow-xl transition-shadow" 
+                 alt="Foto del ticket" 
+                 onclick="ampliarImagen('{{ registro.photo_tiket.url }}')"
+                 style="max-height: 400px; margin: 0 auto;">
+            <p class="text-sm text-gray-500 mt-3">Toca la imagen para ampliar</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Resumen de Costos -->
+    <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div class="bg-gray-800 text-white px-6 py-4">
+            <h2 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-calculator mr-3"></i>
+                Resumen de Costos
+            </h2>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-3 gap-6 text-center">
+                <div class="border-r border-gray-200">
+                    <div class="text-3xl font-bold text-blue-600">{{ registro.Litros }}</div>
+                    <div class="text-sm text-gray-500">Litros</div>
+                </div>
+                <div class="border-r border-gray-200">
+                    <div class="text-3xl font-bold text-yellow-600">${{ registro.costolitro }}</div>
+                    <div class="text-sm text-gray-500">Por Litro</div>
+                </div>
+                <div>
+                    {% comment %} <div class="text-3xl font-bold text-green-600">${{ registro.Litros|mul:registro.costolitro|floatformat:2 }}</div> {% endcomment %}
+                    <div class="text-sm text-gray-500">Total</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="space-y-3">
+        <a href="{% url 'registro_update' registro.id %}" class="w-full block text-center gradient-warning text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all">
+            <i class="fas fa-edit mr-2"></i>
+            Editar Ticket
+        </a>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'registro_list' %}" class="text-center bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Volver
+            </a>
+            <button type="button" onclick="confirmarEliminacion()" class="bg-red-100 text-red-600 py-3 px-6 rounded-xl font-semibold hover:bg-red-200 transition-colors">
+                <i class="fas fa-trash mr-2"></i>
+                Eliminar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ampliar imagen -->
+<div id="imageModal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="relative max-w-4xl w-full">
+            <button onclick="cerrarImagenAmpliada()" class="absolute top-4 right-4 text-white bg-black/50 rounded-full p-3 hover:bg-black/70 transition-colors z-10">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <img id="modalImage" class="w-full h-auto rounded-xl" alt="Foto ampliada">
+        </div>
+    </div>
+</div>
+
+<!-- Formulario oculto para eliminación -->
+<form id="deleteForm" method="post" action="{% url 'registro_delete' registro.id %}" class="hidden">
+    {% csrf_token %}
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleDropdown() {
+    const dropdown = document.getElementById('dropdownMenu');
+    dropdown.classList.toggle('hidden');
+}
+
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('dropdownMenu');
+    const button = e.target.closest('button');
+    
+    if (!button || !button.onclick || button.onclick.toString().indexOf('toggleDropdown') === -1) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+function confirmarEliminacion() {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4';
+    modal.innerHTML = `
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">Confirmar eliminación</h3>
+                <p class="text-gray-500 mb-6">¿Está seguro de que desea eliminar este registro? Esta acción no se puede deshacer.</p>
+                <div class="flex space-x-3">
+                    <button onclick="cancelarEliminacion()" class="flex-1 bg-gray-100 text-gray-700 py-3 px-4 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                        Cancelar
+                    </button>
+                    <button onclick="ejecutarEliminacion()" class="flex-1 bg-red-500 text-white py-3 px-4 rounded-xl font-medium hover:bg-red-600 transition-colors">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    window.currentModal = modal;
+}
+
+function cancelarEliminacion() {
+    if (window.currentModal) {
+        document.body.removeChild(window.currentModal);
+        window.currentModal = null;
+    }
+}
+
+function ejecutarEliminacion() {
+    document.getElementById('deleteForm').submit();
+}
+
+function ampliarImagen(imageSrc) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function cerrarImagenAmpliada() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Funcionalidad para compartir (si está disponible)
+if (navigator.share) {
+    const shareButton = document.createElement('button');
+    shareButton.className = 'bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors';
+    shareButton.innerHTML = '<i class="fas fa-share mr-2"></i>Compartir';
+    shareButton.onclick = function() {
+        navigator.share({
+            title: 'Ticket #{{ registro.numero_tiket }}',
+            text: 'Registro de combustible - {{ registro.Litros }}L por {% comment %}${{ registro.Litros|mul:registro.costolitro|floatformat:2 }}{% endcomment %}',
+            url: window.location.href
+        });
+    };
+    
+    // Agregar botón al dropdown si existe
+    const dropdown = document.getElementById('dropdownMenu');
+    if (dropdown) {
+        const hr = document.createElement('hr');
+        hr.className = 'border-gray-200';
+        dropdown.appendChild(hr);
+        dropdown.appendChild(shareButton);
+    }
+}
+
+// Animaciones de entrada
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.bg-white.rounded-2xl');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 150);
+    });
+});
+</script>
+{% endblock %}

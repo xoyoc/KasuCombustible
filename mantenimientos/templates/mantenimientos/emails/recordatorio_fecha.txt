@@ -1,0 +1,37 @@
+Estimado {{ operador.nombre }},
+
+Le recordamos que el equipo {{ equipo.placa }} tiene mantenimiento programado próximamente.
+
+DETALLES DEL MANTENIMIENTO:
+==========================
+Equipo: {{ equipo.placa }}
+Marca/Modelo: {{ equipo.marca }} {{ equipo.modelo }} ({{ equipo.year }})
+Fecha Programada: {{ mantenimiento.fecha_programada|date:"d/m/Y" }}
+Kilometraje Programado: {{ mantenimiento.kilometraje_programado|floatformat:0 }} km
+Kilometraje Actual: {{ equipo.kilometraje_actual|floatformat:0 }} km
+Tipo de Mantenimiento: {{ mantenimiento.tipo_mantenimiento.nombre }}
+
+{% with dias_restantes=mantenimiento.fecha_programada|timeuntil %}
+Tiempo restante: {{ dias_restantes }}
+{% endwith %}
+
+ACCIONES REQUERIDAS:
+==================
+1. Programe el mantenimiento lo antes posible
+2. Coordine con el taller autorizado
+3. Asegúrese de tener los repuestos necesarios
+4. Notifique cuando el mantenimiento esté completado
+
+IMPORTANTE:
+==========
+- El mantenimiento debe realizarse antes de la fecha límite
+- Si no se puede cumplir con la fecha, notifique inmediatamente a su supervisor
+- Este es un recordatorio automático del sistema
+
+Para más información o consultas, contacte al departamento de mantenimiento.
+
+Saludos cordiales,
+Sistema de Mantenimiento de Equipos
+
+---
+Este es un mensaje automático, por favor no responda a este correo.

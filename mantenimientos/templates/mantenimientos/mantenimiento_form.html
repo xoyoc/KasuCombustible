@@ -1,0 +1,383 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if object %}Editar Mantenimiento{% else %}Nuevo Mantenimiento{% endif %} - Sistema de Mantenimiento
+{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Header Mobile -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">
+                    {% if object %}
+                        <i class="fas fa-edit mr-2 text-blue-600"></i>
+                        Editar
+                    {% else %}
+                        <i class="fas fa-plus mr-2 text-green-600"></i>
+                        Nuevo
+                    {% endif %}
+                </h1>
+                <p class="text-sm text-gray-600">
+                    {% if object %}
+                        {{ object.equipo.placa }}
+                    {% else %}
+                        Programa un mantenimiento
+                    {% endif %}
+                </p>
+            </div>
+            <a href="{% url 'mantenimiento:list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-sm">
+                <i class="fas fa-arrow-left mr-1"></i>
+                Volver
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Mobile -->
+    <div class="bg-white rounded-lg shadow">
+        <form method="post" id="mantenimientoForm">
+            {% csrf_token %}
+            
+            <div class="p-4 space-y-4">
+                <!-- Equipo y Operador -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.equipo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-truck mr-1"></i>
+                            Equipo *
+                        </label>
+                        {{ form.equipo }}
+                        {% if form.equipo.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.equipo.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Selecciona el equipo</p>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.operador.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-1"></i>
+                            Operador *
+                        </label>
+                        {{ form.operador }}
+                        {% if form.operador.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.operador.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Operador responsable</p>
+                    </div>
+                </div>
+
+                <!-- Tipo de Mantenimiento -->
+                <div>
+                    <label for="{{ form.tipo_mantenimiento.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-cogs mr-1"></i>
+                        Tipo de Mantenimiento *
+                    </label>
+                    {{ form.tipo_mantenimiento }}
+                    {% if form.tipo_mantenimiento.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {% for error in form.tipo_mantenimiento.errors %}
+                                <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Fecha y Kilometraje -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.fecha_programada.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-calendar-alt mr-1"></i>
+                            Fecha Programada *
+                        </label>
+                        {{ form.fecha_programada }}
+                        {% if form.fecha_programada.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.fecha_programada.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Fecha límite para el mantenimiento</p>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.kilometraje_programado.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-tachometer-alt mr-1"></i>
+                            Kilometraje Programado *
+                        </label>
+                        {{ form.kilometraje_programado }}
+                        {% if form.kilometraje_programado.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.kilometraje_programado.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Kilometraje límite</p>
+                    </div>
+                </div>
+
+                <!-- Observaciones y Costo -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="{{ form.observaciones.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-sticky-note mr-1"></i>
+                            Observaciones
+                        </label>
+                        {{ form.observaciones }}
+                        {% if form.observaciones.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.observaciones.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Notas adicionales</p>
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.costo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-dollar-sign mr-1"></i>
+                            Costo Estimado
+                        </label>
+                        {{ form.costo }}
+                        {% if form.costo.errors %}
+                            <div class="mt-1 text-sm text-red-600">
+                                {% for error in form.costo.errors %}
+                                    <p><i class="fas fa-exclamation-circle mr-1"></i>{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <p class="mt-1 text-xs text-gray-500">Costo estimado</p>
+                    </div>
+                </div>
+
+                <!-- Información del Equipo -->
+                <div id="equipoInfo" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h3 class="text-sm font-semibold text-blue-800 mb-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Información del Equipo
+                    </h3>
+                    <div id="equipoDetalle" class="text-sm text-blue-700"></div>
+                </div>
+
+                <!-- Form Errors -->
+                {% if form.non_field_errors %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <h3 class="text-sm font-semibold text-red-800 mb-2">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            Errores:
+                        </h3>
+                        {% for error in form.non_field_errors %}
+                            <p class="text-sm text-red-700">{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Form Actions Mobile -->
+            <div class="p-4 bg-gray-50 border-t border-gray-200 space-y-3">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium">
+                    <i class="fas fa-save mr-2"></i>
+                    {% if object %}Actualizar{% else %}Crear{% endif %} Mantenimiento
+                </button>
+                
+                {% if object and not object.completado %}
+                    <a href="{% url 'mantenimiento:completar' object.pk %}" class="block w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-medium text-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Marcar como Completado
+                    </a>
+                {% endif %}
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="resetForm()" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-3 rounded-lg text-sm font-medium">
+                        <i class="fas fa-undo mr-1"></i>
+                        Restablecer
+                    </button>
+                    <a href="{% url 'mantenimiento:list' %}" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-3 rounded-lg text-sm font-medium text-center">
+                        <i class="fas fa-times mr-1"></i>
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Info Mobile -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-start">
+            <i class="fas fa-lightbulb text-yellow-600 mt-1 mr-3"></i>
+            <div>
+                <h3 class="text-sm font-semibold text-yellow-800 mb-2">Recordatorios Automáticos</h3>
+                <ul class="text-sm text-yellow-700 space-y-1">
+                    <li>• Recordatorio 5 días antes de la fecha</li>
+                    <li>• Recordatorio a 100 km del límite</li>
+                    <li>• Reporte al supervisor si se vence</li>
+                    <li>• Procesamiento automático diario</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const equipoSelect = document.getElementById('id_equipo');
+    const fechaInput = document.getElementById('id_fecha_programada');
+    const kilometrajeInput = document.getElementById('id_kilometraje_programado');
+    const equipoInfo = document.getElementById('equipoInfo');
+    const equipoDetalle = document.getElementById('equipoDetalle');
+    
+    // Información de equipos
+    const equiposData = {};
+    
+    function actualizarInfoEquipo() {
+        const equipoId = equipoSelect.value;
+        if (equipoId && equiposData[equipoId]) {
+            const equipo = equiposData[equipoId];
+            equipoDetalle.innerHTML = `
+                <div class="space-y-2 text-sm">
+                    <div><strong>Marca:</strong> ${equipo.marca} ${equipo.modelo} (${equipo.year})</div>
+                    <div><strong>Kilometraje Actual:</strong> ${equipo.kilometraje_actual.toLocaleString()} km</div>
+                    <div><strong>Próximo Mantenimiento:</strong> ${equipo.proximo_fecha}</div>
+                    <div><strong>Próximo Kilometraje:</strong> ${equipo.proximo_km.toLocaleString()} km</div>
+                </div>
+            `;
+            equipoInfo.classList.remove('hidden');
+            
+            // Sugerir valores
+            if (!fechaInput.value) {
+                fechaInput.value = equipo.proximo_fecha;
+            }
+            if (!kilometrajeInput.value) {
+                kilometrajeInput.value = equipo.proximo_km;
+            }
+        } else {
+            equipoInfo.classList.add('hidden');
+        }
+    }
+    
+    // Cargar datos de equipos
+    function cargarEquipos() {
+        // Simulación - en producción harías una llamada AJAX
+        fetch('/api/equipos-datos/')
+            .then(response => response.json())
+            .then(data => {
+                Object.assign(equiposData, data);
+                actualizarInfoEquipo();
+            })
+            .catch(error => {
+                console.log('Error cargando equipos:', error);
+            });
+    }
+    
+    equipoSelect.addEventListener('change', actualizarInfoEquipo);
+    
+    // Validaciones
+    function validarFecha() {
+        const fecha = new Date(fechaInput.value);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        
+        if (fecha < hoy) {
+            fechaInput.classList.add('border-red-500');
+            mostrarError(fechaInput, 'No puede ser en el pasado');
+        } else {
+            fechaInput.classList.remove('border-red-500');
+            ocultarError(fechaInput);
+        }
+    }
+    
+    function validarKilometraje() {
+        const equipoId = equipoSelect.value;
+        const kilometraje = parseInt(kilometrajeInput.value);
+        
+        if (equipoId && equiposData[equipoId]) {
+            const kilometrajeActual = equiposData[equipoId].kilometraje_actual;
+            if (kilometraje <= kilometrajeActual) {
+                kilometrajeInput.classList.add('border-red-500');
+                mostrarError(kilometrajeInput, `Debe ser mayor a ${kilometrajeActual.toLocaleString()} km`);
+            } else {
+                kilometrajeInput.classList.remove('border-red-500');
+                ocultarError(kilometrajeInput);
+            }
+        }
+    }
+    
+    function mostrarError(input, mensaje) {
+        let errorDiv = input.parentNode.querySelector('.error-message');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message mt-1 text-xs text-red-600';
+            input.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-1"></i>${mensaje}`;
+    }
+    
+    function ocultarError(input) {
+        const errorDiv = input.parentNode.querySelector('.error-message');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+    
+    fechaInput.addEventListener('change', validarFecha);
+    kilometrajeInput.addEventListener('input', validarKilometraje);
+    
+    // Inicializar
+    cargarEquipos();
+});
+
+function resetForm() {
+    if (confirm('¿Restablecer el formulario? Se perderán los cambios.')) {
+        document.getElementById('mantenimientoForm').reset();
+        document.getElementById('equipoInfo').classList.add('hidden');
+        
+        // Limpiar errores
+        document.querySelectorAll('.error-message').forEach(error => error.remove());
+        document.querySelectorAll('.border-red-500').forEach(input => input.classList.remove('border-red-500'));
+    }
+}
+
+// Auto-save
+let autoSaveTimer;
+function autoSave() {
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        const formData = new FormData(document.getElementById('mantenimientoForm'));
+        localStorage.setItem('mantenimiento_draft', JSON.stringify(Object.fromEntries(formData)));
+    }, 3000);
+}
+
+document.querySelectorAll('#mantenimientoForm input, #mantenimientoForm select, #mantenimientoForm textarea')
+    .forEach(input => input.addEventListener('input', autoSave));
+
+// Restaurar draft
+window.addEventListener('load', function() {
+    const draft = localStorage.getItem('mantenimiento_draft');
+    if (draft && confirm('¿Restaurar borrador guardado?')) {
+        const data = JSON.parse(draft);
+        Object.keys(data).forEach(key => {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input) input.value = data[key];
+        });
+    }
+});
+
+// Limpiar draft al enviar
+document.getElementById('mantenimientoForm').addEventListener('submit', function() {
+    localStorage.removeItem('mantenimiento_draft');
+});
+</script>
+{% endblock %}

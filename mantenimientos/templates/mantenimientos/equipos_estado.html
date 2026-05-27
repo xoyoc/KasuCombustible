@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+
+{% block title %}Estado de Equipos - Sistema de Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- Header Mobile -->
+    <div class="bg-white rounded-lg shadow p-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-truck mr-2 text-blue-600"></i>
+                    Estado Equipos
+                </h1>
+                <p class="text-sm text-gray-600">Monitoreo de mantenimientos</p>
+            </div>
+            <div class="flex space-x-2">
+                <button onclick="actualizarTodosKilometrajes()" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <a href="{% url 'mantenimiento:create' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen Mobile -->
+    <div class="grid grid-cols-2 gap-3">
+        {% with total_equipos=equipos_data|length necesitan=0 proximos=0 al_dia=0 %}
+            <!-- Total Equipos -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-truck text-blue-600 text-lg"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_equipos }}</p>
+                    <p class="text-xs text-gray-600">Total</p>
+                </div>
+            </div>
+
+            <!-- Necesitan Mantenimiento -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {% for equipo_data in equipos_data %}
+                            {% if equipo_data.necesita_mantenimiento %}{{ forloop.counter }}{% endif %}
+                        {% empty %}0{% endfor %}
+                    </p>
+                    <p class="text-xs text-gray-600">Urgentes</p>
+                </div>
+            </div>
+
+            <!-- Próximo Mantenimiento -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-clock text-yellow-600 text-lg"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {% for equipo_data in equipos_data %}
+                            {% if equipo_data.mantenimiento_proximo and not equipo_data.necesita_mantenimiento %}{{ forloop.counter }}{% endif %}
+                        {% empty %}0{% endfor %}
+                    </p>
+                    <p class="text-xs text-gray-600">Próximos</p>
+                </div>
+            </div>
+
+            <!-- Al Día -->
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-check-circle text-green-600 text-lg"></i>
+                    </div>
+                    <p class="text-2xl font-bold text-gray-900">
+                        {% for equipo_data in equipos_data %}
+                            {% if not equipo_data.necesita_mantenimiento and not equipo_data.mantenimiento_proximo %}{{ forloop.counter }}{% endif %}
+                        {% empty %}0{% endfor %}
+                    </p>
+                    <p class="text-xs text-gray-600">Al Día</p>
+                </div>
+            </div>
+        {% endwith %}
+    </div>
+
+    <!-- Lista de Equipos Mobile -->
+    {% if equipos_data %}
+        <div class="space-y-3">
+            {% for equipo_data in equipos_data %}
+                <div class="bg-white rounded-lg shadow p-4">
+                    <!-- Header del Equipo -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                <i class="fas fa-truck text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">{{ equipo_data.equipo.placa }}</h3>
+                                <p class="text-sm text-gray-500">{{ equipo_data.equipo.marca }} {{ equipo_data.equipo.modelo }}</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Estado Badge -->
+                        <div class="text-right">
+                            {% if equipo_data.necesita_mantenimiento %}
+                                <span class="inline-block px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    Urgente
+                                </span>
+                            {% elif equipo_data.mantenimiento_proximo %}
+                                <span class="inline-block px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Próximo
+                                </span>
+                            {% else %}
+                                <span class="inline-block px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Al Día
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Info Grid -->
+                    <div class="grid grid-cols-2 gap-3 text-sm mb-3">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-gray-600 text-xs">Kilometraje Actual</p>
+                            <p class="font-semibold text-gray-900">{{ equipo_data.equipo.kilometraje_actual|floatformat:0 }} km</p>
+                            <button onclick="mostrarActualizarKilometraje({{ equipo_data.equipo.id }}, '{{ equipo_data.equipo.placa }}', {{ equipo_data.equipo.kilometraje_actual }})" 
+                                    class="text-xs text-blue-600 hover:text-blue-800 mt-1">
+                                <i class="fas fa-edit mr-1"></i>Actualizar
+                            </button>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-gray-600 text-xs">Último Mantenimiento</p>
+                            {% if equipo_data.ultimo_mantenimiento %}
+                                <p class="font-semibold text-gray-900">{{ equipo_data.ultimo_mantenimiento.fecha_completado|date:"d/m/Y" }}</p>
+                                <p class="text-xs text-gray-500">{{ equipo_data.ultimo_mantenimiento.kilometraje_en_mantenimiento|floatformat:0 }} km</p>
+                            {% else %}
+                                <p class="font-semibold text-gray-400">Sin registros</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-gray-600 text-xs">Próximo Mantenimiento</p>
+                            <p class="font-semibold text-gray-900">{{ equipo_data.proximo_mantenimiento.fecha|date:"d/m/Y" }}</p>
+                            <p class="text-xs text-gray-500">{{ equipo_data.proximo_mantenimiento.kilometraje|floatformat:0 }} km</p>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <p class="text-gray-600 text-xs">Tiempo/Distancia Restante</p>
+                            <div class="space-y-1">
+                                <p class="text-xs {% if equipo_data.proximo_mantenimiento.dias_restantes <= 0 %}text-red-600{% elif equipo_data.proximo_mantenimiento.dias_restantes <= 5 %}text-yellow-600{% else %}text-gray-500{% endif %}">
+                                    {% if equipo_data.proximo_mantenimiento.dias_restantes <= 0 %}
+                                        {{ equipo_data.proximo_mantenimiento.dias_restantes|floatformat:0|slice:"1:" }}d vencido
+                                    {% else %}
+                                        {{ equipo_data.proximo_mantenimiento.dias_restantes|floatformat:0 }}d restantes
+                                    {% endif %}
+                                </p>
+                                <p class="text-xs {% if equipo_data.proximo_mantenimiento.km_restantes <= 0 %}text-red-600{% elif equipo_data.proximo_mantenimiento.km_restantes <= 100 %}text-yellow-600{% else %}text-gray-500{% endif %}">
+                                    {% if equipo_data.proximo_mantenimiento.km_restantes <= 0 %}
+                                        {{ equipo_data.proximo_mantenimiento.km_restantes|floatformat:0|slice:"1:" }}km sobre
+                                    {% else %}
+                                        {{ equipo_data.proximo_mantenimiento.km_restantes|floatformat:0 }}km rest.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex space-x-2 pt-3 border-t border-gray-200">
+                        {% if equipo_data.necesita_mantenimiento %}
+                            <a href="{% url 'mantenimiento:create' %}?equipo={{ equipo_data.equipo.id }}" 
+                               class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-3 rounded-lg text-sm text-center">
+                                <i class="fas fa-plus-circle mr-1"></i>
+                                Mantenimiento Urgente
+                            </a>
+                        {% else %}
+                            <a href="{% url 'mantenimiento:create' %}?equipo={{ equipo_data.equipo.id }}" 
+                               class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded-lg text-sm text-center">
+                                <i class="fas fa-plus mr-1"></i>
+                                Programar
+                            </a>
+                        {% endif %}
+                        
+                        <button onclick="verHistorialMantenimiento({{ equipo_data.equipo.id }}, '{{ equipo_data.equipo.placa }}')" 
+                                class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg text-sm text-center">
+                            <i class="fas fa-history mr-1"></i>
+                            Historial
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow p-8 text-center">
+            <i class="fas fa-truck text-gray-400 text-4xl mb-4"></i>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No hay equipos</h3>
+            <p class="text-gray-500 text-sm">Agrega equipos para monitorear su mantenimiento.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal para Actualizar Kilometraje Mobile -->
+<div id="modalKilometraje" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-end justify-center min-h-screen">
+        <div class="bg-white rounded-t-lg shadow-xl w-full max-h-80">
+            <div class="p-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-tachometer-alt mr-2"></i>
+                    Actualizar Kilometraje
+                </h3>
+                <p class="text-sm text-gray-600 mt-1" id="equipoInfo"></p>
+            </div>
+            
+            <form id="formKilometraje" method="post">
+                {% csrf_token %}
+                <div class="p-4">
+                    <input type="hidden" id="equipoId" name="equipo_id">
+                    
+                    <div class="mb-4">
+                        <label for="nuevoKilometraje" class="block text-sm font-medium text-gray-700 mb-2">
+                            Nuevo Kilometraje
+                        </label>
+                        <input type="number" 
+                               id="nuevoKilometraje" 
+                               name="kilometraje" 
+                               class="w-full px-3 py-3 border border-gray-300 rounded-lg text-base"
+                               required>
+                        <p class="mt-1 text-xs text-gray-500">Debe ser mayor o igual al actual</p>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-gray-50 border-t border-gray-200 flex space-x-3">
+                    <button type="button" onclick="cerrarModalKilometraje()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 px-4 rounded-lg">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg">
+                        <i class="fas fa-save mr-2"></i>
+                        Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Historial Mobile -->
+<div id="modalHistorial" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-end justify-center min-h-screen">
+        <div class="bg-white rounded-t-lg shadow-xl w-full h-4/5 overflow-y-auto">
+            <div class="p-4 border-b border-gray-200 sticky top-0 bg-white">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-history mr-2"></i>
+                    Historial de Mantenimiento
+                </h3>
+                <p class="text-sm text-gray-600 mt-1" id="historialEquipoInfo"></p>
+            </div>
+            
+            <div class="p-4">
+                <div id="historialContent">
+                    <div class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl mb-4"></i>
+                        <p class="text-gray-500">Cargando historial...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-gray-50 border-t border-gray-200 sticky bottom-0">
+                <button type="button" onclick="cerrarModalHistorial()" class="w-full bg-gray-500 hover:bg-gray-600 text-white py-3 px-4 rounded-lg">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funciones para modales
+function mostrarActualizarKilometraje(equipoId, placa, kilometrajeActual) {
+    document.getElementById('equipoId').value = equipoId;
+    document.getElementById('equipoInfo').textContent = `Equipo: ${placa} - Actual: ${kilometrajeActual.toLocaleString()} km`;
+    document.getElementById('nuevoKilometraje').value = kilometrajeActual;
+    document.getElementById('nuevoKilometraje').min = kilometrajeActual;
+    document.getElementById('modalKilometraje').classList.remove('hidden');
+}
+
+function cerrarModalKilometraje() {
+    document.getElementById('modalKilometraje').classList.add('hidden');
+}
+
+function verHistorialMantenimiento(equipoId, placa) {
+    document.getElementById('historialEquipoInfo').textContent = `Equipo: ${placa}`;
+    document.getElementById('modalHistorial').classList.remove('hidden');
+    
+    // Cargar historial
+    fetch(`/api/equipos/${equipoId}/historial/`)
+        .then(response => response.json())
+        .then(data => {
+            let historialHtml = '';
+            
+            if (data.mantenimientos && data.mantenimientos.length > 0) {
+                historialHtml = `
+                    <div class="space-y-3">
+                        ${data.mantenimientos.map(m => `
+                            <div class="border border-gray-200 rounded-lg p-3">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="font-semibold text-gray-900 text-sm">${m.tipo_mantenimiento}</h4>
+                                    <span class="text-xs px-2 py-1 rounded-full font-medium 
+                                        ${m.completado ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                                        ${m.completado ? 'Completado' : 'Pendiente'}
+                                    </span>
+                                </div>
+                                <div class="space-y-2 text-sm text-gray-600">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div><strong>Programado:</strong><br>${m.fecha_programada}</div>
+                                        <div><strong>Operador:</strong><br>${m.operador}</div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div><strong>KM Programado:</strong><br>${m.kilometraje_programado.toLocaleString()} km</div>
+                                        ${m.costo ? `<div><strong>Costo:</strong><br>$${m.costo}</div>` : '<div></div>'}
+                                    </div>
+                                    ${m.observaciones ? `<div class="bg-gray-50 p-2 rounded text-xs"><strong>Observaciones:</strong><br>${m.observaciones}</div>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                historialHtml = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-clipboard-list text-gray-400 text-4xl mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Sin historial</h3>
+                        <p class="text-gray-500 text-sm">Este equipo no tiene mantenimientos registrados.</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('historialContent').innerHTML = historialHtml;
+        })
+        .catch(error => {
+            document.getElementById('historialContent').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Error</h3>
+                    <p class="text-gray-500 text-sm">No se pudo cargar el historial.</p>
+                </div>
+            `;
+        });
+}
+
+function cerrarModalHistorial() {
+    document.getElementById('modalHistorial').classList.add('hidden');
+}
+
+function actualizarTodosKilometrajes() {
+    alert('Actualiza cada equipo individualmente por ahora.');
+}
+
+// Envío del formulario
+document.getElementById('formKilometraje').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const equipoId = document.getElementById('equipoId').value;
+    const nuevoKilometraje = document.getElementById('nuevoKilometraje').value;
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    formData.append('kilometraje', nuevoKilometraje);
+    
+    fetch(`{% url 'mantenimiento:actualizar_kilometraje' 0 %}`.replace('0', equipoId), {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        } else {
+            throw new Error('Error en la respuesta');
+        }
+    })
+    .catch(error => {
+        alert('Error al actualizar el kilometraje');
+    });
+});
+
+// Cerrar modales con swipe down o click fuera
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'modalKilometraje' || e.target.id === 'modalHistorial') {
+        cerrarModalKilometraje();
+        cerrarModalHistorial();
+    }
+});
+</script>
+{% endblock %}

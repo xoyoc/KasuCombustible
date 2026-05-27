@@ -1,0 +1,506 @@
+{% extends 'base.html' %}
+
+{% block title %}Notificaciones - Sistema de Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">
+                    <i class="fas fa-bell mr-3 text-yellow-600"></i>
+                    Gestión de Notificaciones
+                </h1>
+                <p class="text-gray-600 mt-1">Monitoreo y control de todas las notificaciones del sistema</p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="procesarNotificacionesPendientes()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Procesar Pendientes
+                </button>
+                <button onclick="mostrarEstadisticas()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    Estadísticas
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Búsqueda</h2>
+        <form method="get" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div>
+                <label for="tipo" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <select name="tipo" id="tipo" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Todos los tipos</option>
+                    {% for value, label in tipos %}
+                        <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                <select name="estado" id="estado" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Todos los estados</option>
+                    {% for value, label in estados %}
+                        <option value="{{ value }}" {% if request.GET.estado == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="fecha_desde" class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+                <input type="date" name="fecha_desde" id="fecha_desde" value="{{ request.GET.fecha_desde }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            
+            <div>
+                <label for="fecha_hasta" class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+                <input type="date" name="fecha_hasta" id="fecha_hasta" value="{{ request.GET.fecha_hasta }}" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            
+            <div class="flex items-end space-x-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center transition-colors">
+                    <i class="fas fa-search mr-2"></i>
+                    Filtrar
+                </button>
+                <a href="{% url 'mantenimiento:notificaciones' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md flex items-center transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resumen -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {% with total=page_obj.paginator.count pendientes=0 enviadas=0 fallidas=0 %}
+            {% for notificacion in page_obj.object_list %}
+                {% if notificacion.estado == 'pendiente' %}
+                    {% widthratio pendientes 1 1 as pendientes %}
+                {% elif notificacion.estado == 'enviada' %}
+                    {% widthratio enviadas 1 1 as enviadas %}
+                {% elif notificacion.estado == 'fallida' %}
+                    {% widthratio fallidas 1 1 as fallidas %}
+                {% endif %}
+            {% endfor %}
+            
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-blue-100">
+                        <i class="fas fa-bell text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Notificaciones</p>
+                        <p class="text-2xl font-semibold text-gray-900">{{ total }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-yellow-100">
+                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pendientes</p>
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {% for notificacion in page_obj.object_list %}
+                                {% if notificacion.estado == 'pendiente' %}{{ forloop.counter }}{% endif %}
+                            {% empty %}0{% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-green-100">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Enviadas</p>
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {% for notificacion in page_obj.object_list %}
+                                {% if notificacion.estado == 'enviada' %}{{ forloop.counter }}{% endif %}
+                            {% empty %}0{% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white shadow rounded-lg p-6">
+                <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-red-100">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Fallidas</p>
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {% for notificacion in page_obj.object_list %}
+                                {% if notificacion.estado == 'fallida' %}{{ forloop.counter }}{% endif %}
+                            {% empty %}0{% endfor %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endwith %}
+    </div>
+
+    <!-- Lista de Notificaciones -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-lg font-semibold text-gray-900">
+                Lista de Notificaciones
+                <span class="text-sm font-normal text-gray-500">({{ page_obj.paginator.count }} total)</span>
+            </h2>
+        </div>
+        
+        {% if page_obj.object_list %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notificación</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Destinatario</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Equipo</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for notificacion in page_obj.object_list %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 h-8 w-8">
+                                            <div class="h-8 w-8 rounded-full flex items-center justify-center
+                                                {% if notificacion.tipo == 'recordatorio' %}bg-blue-100{% elif notificacion.tipo == 'vencimiento' %}bg-yellow-100{% else %}bg-red-100{% endif %}">
+                                                <i class="fas 
+                                                    {% if notificacion.tipo == 'recordatorio' %}fa-clock text-blue-600{% elif notificacion.tipo == 'vencimiento' %}fa-exclamation-triangle text-yellow-600{% else %}fa-exclamation-circle text-red-600{% endif %} 
+                                                    text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div class="ml-3">
+                                            <div class="text-sm font-medium text-gray-900">{{ notificacion.asunto }}</div>
+                                            <div class="text-sm text-gray-500">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+                                                    {% if notificacion.tipo == 'recordatorio' %}bg-blue-100 text-blue-800{% elif notificacion.tipo == 'vencimiento' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                                    {{ notificacion.get_tipo_display }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ notificacion.destinatario_email }}</div>
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if notificacion.mantenimiento %}
+                                        <div class="text-sm font-medium text-gray-900">{{ notificacion.mantenimiento.equipo.placa }}</div>
+                                        <div class="text-sm text-gray-500">{{ notificacion.mantenimiento.equipo.marca }} {{ notificacion.mantenimiento.equipo.modelo }}</div>
+                                    {% else %}
+                                        <span class="text-sm text-gray-400">Reporte general</span>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <div>
+                                        <span class="font-medium">Creada:</span> {{ notificacion.fecha_creacion|date:"d/m/Y H:i" }}
+                                    </div>
+                                    <div>
+                                        <span class="font-medium">Programada:</span> {{ notificacion.fecha_programada|date:"d/m/Y H:i" }}
+                                    </div>
+                                    {% if notificacion.fecha_enviada %}
+                                        <div class="text-green-600">
+                                            <span class="font-medium">Enviada:</span> {{ notificacion.fecha_enviada|date:"d/m/Y H:i" }}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                        {% if notificacion.estado == 'enviada' %}bg-green-100 text-green-800
+                                        {% elif notificacion.estado == 'fallida' %}bg-red-100 text-red-800
+                                        {% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        <i class="fas 
+                                            {% if notificacion.estado == 'enviada' %}fa-check-circle
+                                            {% elif notificacion.estado == 'fallida' %}fa-times-circle
+                                            {% else %}fa-clock{% endif %} mr-1"></i>
+                                        {{ notificacion.get_estado_display }}
+                                    </span>
+                                    
+                                    {% if notificacion.error_mensaje %}
+                                        <div class="text-xs text-red-600 mt-1" title="{{ notificacion.error_mensaje }}">
+                                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                                            Error
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <button onclick="verDetalleNotificacion({{ notificacion.pk }})" 
+                                            class="text-blue-600 hover:text-blue-900 transition-colors" title="Ver Detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    
+                                    {% if notificacion.estado == 'pendiente' or notificacion.estado == 'fallida' %}
+                                        <a href="{% url 'mantenimiento:enviar_notificacion' notificacion.pk %}" 
+                                           class="text-green-600 hover:text-green-900 transition-colors" title="Enviar Ahora"
+                                           onclick="return confirm('¿Enviar esta notificación ahora?')">
+                                            <i class="fas fa-paper-plane"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if notificacion.estado == 'fallida' %}
+                                        <button onclick="verErrorNotificacion('{{ notificacion.error_mensaje }}')" 
+                                                class="text-red-600 hover:text-red-900 transition-colors" title="Ver Error">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <div class="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex justify-between sm:hidden">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Anterior
+                                </a>
+                            {% endif %}
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                                    Siguiente
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Mostrando
+                                    <span class="font-medium">{{ page_obj.start_index }}</span>
+                                    a
+                                    <span class="font-medium">{{ page_obj.end_index }}</span>
+                                    de
+                                    <span class="font-medium">{{ page_obj.paginator.count }}</span>
+                                    resultados
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                    {% if page_obj.has_previous %}
+                                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Anterior</span>
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                                                {{ num }}
+                                            </span>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                                {{ num }}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                    
+                                    {% if page_obj.has_next %}
+                                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                            <span class="sr-only">Siguiente</span>
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    {% endif %}
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-12">
+                <i class="fas fa-bell-slash text-gray-400 text-4xl mb-4"></i>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron notificaciones</h3>
+                <p class="text-gray-500 mb-4">No hay notificaciones que coincidan con los filtros aplicados.</p>
+                <a href="{% url 'mantenimiento:notificaciones' %}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md inline-flex items-center transition-colors">
+                    <i class="fas fa-times mr-2"></i>
+                    Limpiar Filtros
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para Detalle de Notificación -->
+<div id="modalDetalle" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-screen overflow-y-auto">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Detalle de Notificación
+                </h3>
+            </div>
+            
+            <div class="p-6">
+                <div id="detalleContent">
+                    <div class="text-center py-8">
+                        <i class="fas fa-spinner fa-spin text-gray-400 text-2xl mb-4"></i>
+                        <p class="text-gray-500">Cargando detalle...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end">
+                <button type="button" onclick="cerrarModalDetalle()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Error de Notificación -->
+<div id="modalError" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-900 text-red-600">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Error de Notificación
+                </h3>
+            </div>
+            
+            <div class="p-6">
+                <div id="errorContent" class="bg-red-50 border border-red-200 rounded p-4">
+                    <!-- Error content here -->
+                </div>
+            </div>
+            
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end">
+                <button type="button" onclick="cerrarModalError()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function verDetalleNotificacion(notificacionId) {
+    document.getElementById('modalDetalle').classList.remove('hidden');
+    
+    // Simular carga de datos (aquí harías una llamada AJAX real)
+    fetch(`/api/notificaciones/${notificacionId}/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('detalleContent').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Información General</h4>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div><strong>Tipo:</strong> ${data.tipo}</div>
+                            <div><strong>Estado:</strong> ${data.estado}</div>
+                            <div><strong>Destinatario:</strong> ${data.destinatario_email}</div>
+                            <div><strong>Fecha Creación:</strong> ${data.fecha_creacion}</div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Asunto</h4>
+                        <p class="text-gray-700 bg-gray-50 p-3 rounded">${data.asunto}</p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold text-gray-900 mb-2">Mensaje</h4>
+                        <div class="text-gray-700 bg-gray-50 p-3 rounded whitespace-pre-wrap">${data.mensaje}</div>
+                    </div>
+                    
+                    ${data.mantenimiento ? `
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-2">Mantenimiento Relacionado</h4>
+                            <div class="text-sm text-gray-700">
+                                <strong>Equipo:</strong> ${data.mantenimiento.equipo}<br>
+                                <strong>Fecha:</strong> ${data.mantenimiento.fecha_programada}<br>
+                                <strong>Operador:</strong> ${data.mantenimiento.operador}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        })
+        .catch(error => {
+            document.getElementById('detalleContent').innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-red-400 text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Error al cargar detalle</h3>
+                    <p class="text-gray-500">No se pudo cargar el detalle de la notificación.</p>
+                </div>
+            `;
+        });
+}
+
+function cerrarModalDetalle() {
+    document.getElementById('modalDetalle').classList.add('hidden');
+}
+
+function verErrorNotificacion(errorMensaje) {
+    document.getElementById('errorContent').innerHTML = `
+        <p class="text-red-700">${errorMensaje}</p>
+    `;
+    document.getElementById('modalError').classList.remove('hidden');
+}
+
+function cerrarModalError() {
+    document.getElementById('modalError').classList.add('hidden');
+}
+
+function procesarNotificacionesPendientes() {
+    if (confirm('¿Procesar todas las notificaciones pendientes ahora?')) {
+        fetch('/api/procesar-notificaciones-pendientes/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(`Procesadas ${data.procesadas} notificaciones`);
+            location.reload();
+        })
+        .catch(error => {
+            alert('Error al procesar notificaciones');
+        });
+    }
+}
+
+function mostrarEstadisticas() {
+    alert('Funcionalidad de estadísticas en desarrollo');
+}
+
+// Cerrar modales con ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        cerrarModalDetalle();
+        cerrarModalError();
+    }
+});
+</script>
+{% endblock %}

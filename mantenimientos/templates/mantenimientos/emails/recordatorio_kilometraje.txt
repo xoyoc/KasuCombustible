@@ -1,0 +1,50 @@
+Estimado {{ operador.nombre }},
+
+ALERTA: El equipo {{ equipo.placa }} está próximo al límite de kilometraje para mantenimiento.
+
+DETALLES DEL EQUIPO:
+===================
+Equipo: {{ equipo.placa }}
+Marca/Modelo: {{ equipo.marca }} {{ equipo.modelo }} ({{ equipo.year }})
+Kilometraje Actual: {{ equipo.kilometraje_actual|floatformat:0 }} km
+Kilometraje Programado para Mantenimiento: {{ mantenimiento.kilometraje_programado|floatformat:0 }} km
+Kilómetros Restantes: {{ mantenimiento.kilometraje_programado|sub:equipo.kilometraje_actual|floatformat:0 }} km
+
+DETALLES DEL MANTENIMIENTO:
+==========================
+Fecha Programada: {{ mantenimiento.fecha_programada|date:"d/m/Y" }}
+Tipo de Mantenimiento: {{ mantenimiento.tipo_mantenimiento.nombre }}
+
+⚠️  ACCIÓN URGENTE REQUERIDA:
+=============================
+El equipo está muy cerca del límite de kilometraje. Es CRÍTICO que:
+
+1. DETENGA el uso del equipo si es posible
+2. Programe el mantenimiento INMEDIATAMENTE
+3. No exceda el kilometraje programado
+4. Coordine con el taller lo antes posible
+
+PROCEDIMIENTO:
+=============
+1. Contacte al taller autorizado hoy mismo
+2. Confirme disponibilidad de repuestos
+3. Programe cita urgente
+4. Informe a su supervisor sobre el estado
+5. Actualice el kilometraje en el sistema
+
+IMPORTANTE:
+==========
+- NO exceder el kilometraje límite puede resultar en:
+  * Daños al equipo
+  * Pérdida de garantía
+  * Costos adicionales de reparación
+  * Tiempo de inactividad prolongado
+
+Si tiene alguna dificultad para programar el mantenimiento, contacte a su supervisor INMEDIATAMENTE.
+
+Saludos cordiales,
+Sistema de Mantenimiento de Equipos
+
+---
+Este es un mensaje automático urgente, por favor no responda a este correo.
+Para emergencias, contacte directamente al departamento de mantenimiento.
