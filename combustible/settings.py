@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_celery_beat',
+    'django_apscheduler',
     'crispy_forms',
     'crispy_tailwind',
     'equipo',
@@ -144,6 +144,7 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
 STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
@@ -237,6 +238,20 @@ REPORTES_STORAGE_LOCATION = 'reportes'
 WHATSAPP_PHONE_NUMBER_ID = config('WHATSAPP_PHONE_NUMBER_ID', default='')
 WHATSAPP_ACCESS_TOKEN = config('WHATSAPP_ACCESS_TOKEN', default='')
 WHATSAPP_VERIFY_TOKEN = config('WHATSAPP_VERIFY_TOKEN', default='whatsapp_webhook_verify')
+
+# === OPENWA (open-wa/wa-automate) ===
+OPENWA_API_URL = config('WA_API_URL', default='')
+OPENWA_API_KEY = config('WA_API_KEY', default='')
+OPENWA_SESSION_ID = config('WA_SESSION_ID', default='')
+OPENWA_ADMIN_CHAT = config('WA_ADMIN_CHAT', default='')
+OPENWA_WEBHOOK_SECRET = config('WA_WEBHOOK_SECRET', default='')
+OPENWA_ALLOWED_NUMBERS = [
+    n.strip() for n in config('WA_ALLOWED_NUMBERS', default='').split(',') if n.strip()
+]
+
+# === APSCHEDULER ===
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"
+APSCHEDULER_RUN_NOW_TIMEOUT = 25  # segundos
 
 # Configuración de webhook
 WHATSAPP_WEBHOOK_URL = config('WHATSAPP_WEBHOOK_URL', default='/webhook/whatsapp/')

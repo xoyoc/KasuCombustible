@@ -1,33 +1,34 @@
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView
 from django.views import generic
-from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect
 
 from equipo.forms import TeamForm
 from equipo.models import Equipo
 
 
-# Create your views here.
 class TeamListView(generic.ListView):
     model = Equipo
-    template_name="equipo/list_equipo.html"
+    template_name = "equipo/list_equipo.html"
     context_object_name = 'equipos'
 
-class TeamFormView(generic.FormView):
-    template_name = "equipo/add_equipo.html"
+
+class TeamFormView(generic.CreateView):
+    model = Equipo
     form_class = TeamForm
-    success_url = reverse_lazy('add_team')
+    template_name = "equipo/add_equipo.html"
+    success_url = reverse_lazy('equipo_list')
 
-    def form_valid(self, form):
-        form.save()
-        return super().form_valid(form)
-    
 
-def my_test_view(request):
-    return HttpResponse("Prueba vista de equipo")
+class EquipoUpdateView(generic.UpdateView):
+    model = Equipo
+    form_class = TeamForm
+    template_name = "equipo/add_equipo.html"
+    success_url = reverse_lazy('equipo_list')
 
-def my_view_detalle(request, *args, **kwargs):
-    print(args)
-    print(kwargs)
-    return HttpResponse("Prueba vista de equipo detallado")
+
+class EquipoDeleteView(generic.DeleteView):
+    model = Equipo
+    success_url = reverse_lazy('equipo_list')
+
+    def get(self, request, *args, **kwargs):
+        return redirect('equipo_list')

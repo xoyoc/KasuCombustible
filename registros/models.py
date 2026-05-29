@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Registro(models.Model):
     fecha_hora = models.DateTimeField(auto_now_add=True, verbose_name="Fecha y hora")
-    numero_tiket = models.CharField(max_length=20, verbose_name="Numero ticket")
+    numero_tiket = models.CharField(max_length=20, blank=True, verbose_name="Numero ticket")
     idEquipo = models.ForeignKey(Equipo, on_delete=models.DO_NOTHING)
     idOperador = models.ForeignKey(Operador, on_delete=models.DO_NOTHING)
     Litros = models.DecimalField(max_digits=4,decimal_places=2, verbose_name="Cantidad de litros")

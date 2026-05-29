@@ -207,7 +207,7 @@ function cancelarEliminacion() {
 
 function ejecutarEliminacion(operadorId) {
     const form = document.getElementById('deleteForm');
-    form.action = `/operador/${operadorId}/delete/`;
+    form.action = `/operadores/${operadorId}/eliminar/`;
     form.submit();
 }
 

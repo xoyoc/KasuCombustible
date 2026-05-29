@@ -15,6 +15,7 @@ from whatsaap_service import WhatsAppBusinessService
 from .models import WhatsAppWebhookLog, WhatsAppMessage, WhatsAppContact
 
 from registros.models import Registro, Equipo
+from registros.forms import RegisterForm
 
 # Create your views here.
 
@@ -30,17 +31,8 @@ class RegisterDetailView(generic.DetailView):
 
 class RegisterFormView(generic.CreateView):
     model = Registro
-    fields = [
-            'numero_tiket',
-            'idEquipo', 
-            'idOperador',
-            'Litros',
-            'Litros',
-            'costolitro',
-            'kilometraje',
-            'photo_tiket'
-            ]
-    template_name="registros/add_register.html"
+    form_class = RegisterForm
+    template_name = "registros/add_register.html"
     success_url = reverse_lazy('registro_list')
     
     def form_valid(self, form):

@@ -1,34 +1,39 @@
 from django import forms
+from django.utils import timezone
 
 from registros.models import Registro
-from combustible.sendmail import sendMail
 
 
 class RegisterForm(forms.ModelForm):
     class Meta:
         model = Registro
         fields = [
-                    'numero_tiket',
-                    'idEquipo', 
-                    'idOperador',
-                    'Litros',
-                    'Litros',
-                    'costolitro',
-                    'kilometraje',
-                    'photo_tiket'
-                  ]
+            'idEquipo',
+            'idOperador',
+            'numero_tiket',
+            'Litros',
+            'costolitro',
+            'kilometraje',
+            'photo_tiket',
+        ]
 
-    def save(self):
-        Registro.objects.create(
-            numero_tiket = self.cleaned_data["numero_tiket"],
-            idEquipo = self.cleaned_data["idEquipo"],
-            idOperador = self.cleaned_data["idOperador"],
-            Litros = self.cleaned_data["Litros"],
-            costolitro = self.cleaned_data["costolitro"],
-            kilometraje = self.cleaned_data["kilometraje"],
-            photo_tiket = self.cleaned_data["photo_tiket"],
-        )
-        email=self.cleaned_data["idOperador"].email
-        titulo="Registro de ticket"
-        contenido = f"Numero de ticket: {self.cleaned_data["numero_tiket"]} Cantidad:{self.cleaned_data["Litros"]}"
-        sendMail(email, titulo, contenido)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['numero_tiket'].required = False
+        self.fields['kilometraje'].required = False
+        self.fields['photo_tiket'].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        equipo = cleaned_data.get('idEquipo')
+        numero_tiket = (cleaned_data.get('numero_tiket') or '').strip()
+
+        if equipo and equipo.tipo_combustible == 'diesel':
+            ts = timezone.now().strftime('%Y%m%d%H%M')
+            cleaned_data['numero_tiket'] = f"DIESEL-{equipo.numero_economico}-{ts}"
+            cleaned_data['kilometraje'] = equipo.kilometraje_actual
+            cleaned_data['photo_tiket'] = None
+        elif not numero_tiket:
+            self.add_error('numero_tiket', 'Este campo es obligatorio para unidades de gasolina.')
+
+        return cleaned_data

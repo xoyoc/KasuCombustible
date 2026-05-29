@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Tickets de Combustible{% endblock %}</title>
+    <title>{% block title %}Kasu Combustible{% endblock %} | Transportes Kasu</title>
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/favicon.png' %}">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -13,10 +15,17 @@
                 extend: {
                     colors: {
                         primary: {
-                            50: '#eff6ff',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
+                            50:  '#fdf2f8',
+                            100: '#fce7f3',
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d',
+                        },
+                        kasu: {
+                            pink:    '#e91e8c',
+                            magenta: '#c2006e',
+                            light:   '#f8a8d4',
                         }
                     }
                 }
@@ -31,17 +40,17 @@
         }
         
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e91e8c 0%, #c2006e 100%);
         }
-        
+
         .gradient-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #e91e8c 0%, #c2006e 100%);
         }
-        
+
         .gradient-success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
-        
+
         .gradient-warning {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
         }
@@ -65,9 +74,25 @@
 <body class="bg-gray-50 min-h-screen pb-20">
     <!-- Header -->
     <header class="gradient-primary text-white sticky top-0 z-50 shadow-lg">
-        <div class="px-4 py-4">
+        <div class="px-4 py-3">
             <div class="flex justify-between items-center">
-                <h1 class="text-xl font-semibold">{% block header_title %}Tickets de Combustible{% endblock %}</h1>
+                <!-- Logo + título de sección -->
+                <div class="flex items-center space-x-3">
+                    <a href="{% url 'registro_list' %}" class="flex-shrink-0">
+                        <img src="{% static 'img/logo.png' %}"
+                             alt="Transportes Kasu"
+                             class="h-10 w-10 object-contain rounded-lg bg-white/10 p-0.5">
+                    </a>
+                    <div>
+                        <div class="text-[10px] font-medium text-white/60 uppercase tracking-widest leading-none">
+                            Transportes Kasu
+                        </div>
+                        <h1 class="text-base font-semibold leading-tight">
+                            {% block header_title %}Combustible{% endblock %}
+                        </h1>
+                    </div>
+                </div>
+                <!-- Acciones del header -->
                 <div class="flex items-center space-x-2">
                     {% block header_actions %}{% endblock %}
                 </div>
@@ -103,26 +128,26 @@
 {% comment %}     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div class="grid grid-cols-4 h-16">
             <a href="{% url 'registro_list' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'registro_list' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'registro_list' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-list text-xl"></i>
                 <span class="text-xs font-medium">Registros</span>
             </a>
             <a href="{% url 'registro_create' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'registro_create' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'registro_create' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-plus-circle text-xl"></i>
                 <span class="text-xs font-medium">Nuevo</span>
             </a>
             <a href="{% url 'equipo_list' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'equipo_list' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'equipo_list' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-truck text-xl"></i>
                 <span class="text-xs font-medium">Equipos</span>
             </a>
             <a href="{% url 'operador_list' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'operador_list' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'operador_list' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-users text-xl"></i>
                 <span class="text-xs font-medium">Operadores</span>
             </a>
@@ -131,36 +156,36 @@
     <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
         <div class="grid grid-cols-5 h-16">
             <a href="{% url 'registro_list' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'registro_list' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'registro_list' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-list text-lg"></i>
                 <span class="text-xs font-medium">Registros</span>
             </a>
             
             <a href="{% url 'mantenimiento:dashboard' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if 'mantenimiento' in request.resolver_match.namespace %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if 'mantenimiento' in request.resolver_match.namespace %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-tools text-lg"></i>
                 <span class="text-xs font-medium">Mantenim.</span>
             </a>
             
             <a href="{% url 'registro_create' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'registro_create' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'registro_create' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-plus-circle text-lg"></i>
                 <span class="text-xs font-medium">Nuevo</span>
             </a>
             
             <a href="{% url 'equipo_list' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'equipo_list' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'equipo_list' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-truck text-lg"></i>
                 <span class="text-xs font-medium">Equipos</span>
             </a>
             
             <a href="{% url 'operador_list' %}" class="flex flex-col items-center justify-center space-y-1 
-                {% if request.resolver_match.url_name == 'operador_list' %}text-blue-600{% else %}text-gray-400{% endif %} 
-                hover:text-blue-600 transition-colors">
+                {% if request.resolver_match.url_name == 'operador_list' %}text-pink-600{% else %}text-gray-400{% endif %}
+                hover:text-pink-600 transition-colors">
                 <i class="fas fa-users text-lg"></i>
                 <span class="text-xs font-medium">Operadores</span>
             </a>
