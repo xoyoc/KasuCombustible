@@ -218,6 +218,7 @@ AWS_S3_OBJECT_PARAMETERS.update({
 if config('USE_SPACES', default=False, cast=bool):
     # En producción usar Spaces
     print("📦 Usando DigitalOcean Spaces para archivos")
+    STATICFILES_DIRS = [Path.joinpath(BASE_DIR, 'static'), ]
 else:
     # En desarrollo usar almacenamiento local
     STATIC_URL = '/static/'
@@ -287,8 +288,7 @@ MANTENIMIENTO_KM_AVISO = 100  # Kilómetros antes para enviar recordatorio
 
 # Configuración de reportes
 MANTENIMIENTO_EMAIL_SUPERVISORES = [
-    'zuly.becerra@loginco.com.mx',
-    'f.suarez@loginco.com.mx',
+    'gerencia.general@transporteskasu.com.mx',
     'xoyoc_l2@hotmail.com',
 ]
 
